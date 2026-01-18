@@ -14,11 +14,13 @@ public class GoodsReceiptService : IGoodsReceiptService
 {
     private readonly StockFlowDbContext _context;
     private readonly IMapper _mapper;
+    private readonly ICurrentUserService _currentUserService;
 
-    public GoodsReceiptService(StockFlowDbContext context, IMapper mapper)
+    public GoodsReceiptService(StockFlowDbContext context, IMapper mapper, ICurrentUserService currentUserService)
     {
         _context = context;
         _mapper = mapper;
+        _currentUserService = currentUserService;
     }
 
     public async Task<GoodsReceiptDto?> GetByIdAsync(int id, CancellationToken ct = default)
@@ -170,7 +172,7 @@ public class GoodsReceiptService : IGoodsReceiptService
             SupplierDeliveryNote = dto.DeliveryNoteNumber,
             Notes = dto.Notes,
             Status = GoodsReceiptStatus.Draft,
-            ReceivedByUserId = 1, // TODO: Get from auth context
+            ReceivedByUserId = _currentUserService.UserId ?? 1,
             CreatedDate = DateTime.UtcNow
         };
 

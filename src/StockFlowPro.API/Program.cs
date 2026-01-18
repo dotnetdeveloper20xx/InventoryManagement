@@ -211,10 +211,8 @@ static async Task SeedDevelopmentData(StockFlowDbContext context)
 
         await context.SaveChangesAsync();
 
-        Log.Information("Database seeded with test data. Test users created:");
-        Log.Information("  Username: admin    Password: Password123!");
-        Log.Information("  Username: demo     Password: Password123!");
-        Log.Information("  Username: clerk    Password: Password123!");
+        Log.Information("Database seeded with test data. Test users created: admin, demo, clerk");
+        Log.Information("See README.md for default credentials.");
     }
 }
 

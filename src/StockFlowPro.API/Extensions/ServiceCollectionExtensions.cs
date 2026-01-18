@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using StockFlowPro.API.Services;
 using StockFlowPro.Application.Common.Mappings;
 using StockFlowPro.Application.Services.Implementations;
 using StockFlowPro.Application.Services.Interfaces;
@@ -32,6 +33,10 @@ public static class ServiceCollectionExtensions
 
         // Repositories
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        // HttpContext accessor for current user service
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         // AutoMapper
         services.AddAutoMapper(typeof(MappingProfile).Assembly);
@@ -101,12 +106,14 @@ public static class ServiceCollectionExtensions
                     .AllowCredentials();
             });
 
-            options.AddPolicy("AllowAll", builder =>
+            // Production policy - configure allowed origins from configuration
+            options.AddPolicy("Production", builder =>
             {
                 builder
-                    .AllowAnyOrigin()
+                    .WithOrigins(configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>())
                     .AllowAnyMethod()
-                    .AllowAnyHeader();
+                    .AllowAnyHeader()
+                    .AllowCredentials();
             });
         });
 
@@ -116,7 +123,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         var jwtSettings = configuration.GetSection("JwtSettings");
-        var secretKey = jwtSettings["SecretKey"] ?? "StockFlowPro_SuperSecret_Key_That_Is_Long_Enough_256_Bits!";
+        var secretKey = jwtSettings["SecretKey"]
+            ?? throw new InvalidOperationException("JWT SecretKey must be configured in appsettings.json under JwtSettings:SecretKey");
 
         services.AddAuthentication(options =>
         {

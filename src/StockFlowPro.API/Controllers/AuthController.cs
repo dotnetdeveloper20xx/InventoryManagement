@@ -58,16 +58,13 @@ public class AuthController : BaseApiController
             return UnauthorizedResponse<LoginResponseDto>("User not authenticated.");
         }
 
-        // For simplicity, we just generate a new token
-        // In a real application, you would validate and use refresh tokens
-        var username = User.Identity?.Name;
-        if (string.IsNullOrEmpty(username))
+        var result = await _authService.RefreshTokenAsync(userId.Value, cancellationToken);
+        if (result == null)
         {
-            return UnauthorizedResponse<LoginResponseDto>("User not found.");
+            return UnauthorizedResponse<LoginResponseDto>("User not found or inactive.");
         }
 
-        // This would need to get user details and generate new token
-        return OkResponse<LoginResponseDto>(null!, "Token refresh not implemented - use login endpoint.");
+        return OkResponse(result, "Token refreshed successfully.");
     }
 
     private int? GetCurrentUserId()

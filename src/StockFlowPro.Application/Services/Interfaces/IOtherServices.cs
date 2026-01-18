@@ -81,6 +81,28 @@ public interface IUserService
 public interface IAuthService
 {
     Task<LoginResponseDto> LoginAsync(LoginDto dto, CancellationToken cancellationToken = default);
+    Task<LoginResponseDto?> RefreshTokenAsync(int userId, CancellationToken cancellationToken = default);
     Task LogoutAsync(int userId, CancellationToken cancellationToken = default);
     string GenerateJwtToken(UserDto user);
+}
+
+/// <summary>
+/// Provides access to the current authenticated user's context
+/// </summary>
+public interface ICurrentUserService
+{
+    /// <summary>
+    /// Gets the current user's ID, or null if not authenticated
+    /// </summary>
+    int? UserId { get; }
+
+    /// <summary>
+    /// Gets the current user's username, or null if not authenticated
+    /// </summary>
+    string? Username { get; }
+
+    /// <summary>
+    /// Gets whether the current user is authenticated
+    /// </summary>
+    bool IsAuthenticated { get; }
 }

@@ -13,11 +13,13 @@ public class InventoryService : IInventoryService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ICurrentUserService _currentUserService;
 
-    public InventoryService(IUnitOfWork unitOfWork, IMapper mapper)
+    public InventoryService(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _currentUserService = currentUserService;
     }
 
     public async Task<StockLevelDto?> GetStockLevelAsync(int productId, int warehouseId, CancellationToken cancellationToken = default)
@@ -195,7 +197,7 @@ public class InventoryService : IInventoryService
                 Notes = lineDto.Notes ?? dto.Notes,
                 Status = MovementStatus.Completed,
                 CreatedDate = DateTime.UtcNow,
-                CreatedByUserId = 1 // TODO: Get from current user
+                CreatedByUserId = _currentUserService.UserId ?? 1
             };
 
             await _unitOfWork.StockMovements.AddAsync(movement, cancellationToken);

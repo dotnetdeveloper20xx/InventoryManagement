@@ -14,11 +14,13 @@ public class TransferService : ITransferService
 {
     private readonly StockFlowDbContext _context;
     private readonly IMapper _mapper;
+    private readonly ICurrentUserService _currentUserService;
 
-    public TransferService(StockFlowDbContext context, IMapper mapper)
+    public TransferService(StockFlowDbContext context, IMapper mapper, ICurrentUserService currentUserService)
     {
         _context = context;
         _mapper = mapper;
+        _currentUserService = currentUserService;
     }
 
     public async Task<TransferDto?> GetByIdAsync(int id, CancellationToken ct = default)
@@ -96,7 +98,7 @@ public class TransferService : ITransferService
             Priority = Enum.TryParse<TransferPriority>(dto.Priority, out var priority) ? priority : TransferPriority.Normal,
             Status = TransferStatus.Draft,
             Notes = dto.Notes,
-            RequestedByUserId = 1, // TODO: Get from auth context
+            RequestedByUserId = _currentUserService.UserId ?? 1,
             CreatedDate = DateTime.UtcNow
         };
 

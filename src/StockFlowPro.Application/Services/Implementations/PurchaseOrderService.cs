@@ -13,11 +13,13 @@ public class PurchaseOrderService : IPurchaseOrderService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ICurrentUserService _currentUserService;
 
-    public PurchaseOrderService(IUnitOfWork unitOfWork, IMapper mapper)
+    public PurchaseOrderService(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _currentUserService = currentUserService;
     }
 
     public async Task<PurchaseOrderDetailDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
@@ -82,7 +84,7 @@ public class PurchaseOrderService : IPurchaseOrderService
             ShippingCost = dto.ShippingCost,
             Notes = dto.Notes,
             CreatedDate = DateTime.UtcNow,
-            CreatedByUserId = 1 // TODO: Get from current user
+            CreatedByUserId = _currentUserService.UserId ?? 1
         };
 
         decimal subtotal = 0;
@@ -170,7 +172,7 @@ public class PurchaseOrderService : IPurchaseOrderService
         purchaseOrder.Status = PurchaseOrderStatus.Approved;
         purchaseOrder.ApprovalStatus = ApprovalStatus.Approved;
         purchaseOrder.ApprovedDate = DateTime.UtcNow;
-        purchaseOrder.ApprovedByUserId = 1; // TODO: Get from current user
+        purchaseOrder.ApprovedByUserId = _currentUserService.UserId ?? 1;
         purchaseOrder.ApprovalNotes = notes;
         purchaseOrder.ModifiedDate = DateTime.UtcNow;
 
@@ -289,7 +291,7 @@ public class PurchaseOrderService : IPurchaseOrderService
                 ReferenceNumber = purchaseOrder.PONumber,
                 Status = MovementStatus.Completed,
                 CreatedDate = DateTime.UtcNow,
-                CreatedByUserId = 1 // TODO: Get from current user
+                CreatedByUserId = _currentUserService.UserId ?? 1
             };
             await _unitOfWork.StockMovements.AddAsync(movement, cancellationToken);
         }

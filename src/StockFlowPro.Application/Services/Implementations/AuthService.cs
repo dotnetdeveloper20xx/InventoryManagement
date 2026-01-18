@@ -50,6 +50,38 @@ public class AuthService : IAuthService
         };
     }
 
+    public async Task<LoginResponseDto?> RefreshTokenAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        var userDetail = await _unitOfWork.Users.GetByIdAsync(userId, cancellationToken);
+        if (userDetail == null || !userDetail.IsActive)
+        {
+            return null;
+        }
+
+        var user = new UserDto
+        {
+            UserId = userDetail.UserId,
+            Username = userDetail.Username,
+            Email = userDetail.Email,
+            FirstName = userDetail.FirstName,
+            LastName = userDetail.LastName,
+            RoleId = userDetail.RoleId,
+            RoleName = userDetail.Role?.RoleName ?? "User"
+        };
+
+        var token = GenerateJwtToken(user);
+
+        var jwtSettings = _configuration.GetSection("JwtSettings");
+        var expirationHours = int.Parse(jwtSettings["ExpirationHours"] ?? "8");
+
+        return new LoginResponseDto
+        {
+            Token = token,
+            Expiration = DateTime.UtcNow.AddHours(expirationHours),
+            User = user
+        };
+    }
+
     public async Task LogoutAsync(int userId, CancellationToken cancellationToken = default)
     {
         // In a real application, you might want to:
@@ -62,7 +94,8 @@ public class AuthService : IAuthService
     public string GenerateJwtToken(UserDto user)
     {
         var jwtSettings = _configuration.GetSection("JwtSettings");
-        var secretKey = jwtSettings["SecretKey"] ?? "StockFlowPro_SuperSecret_Key_That_Is_Long_Enough_256_Bits!";
+        var secretKey = jwtSettings["SecretKey"]
+            ?? throw new InvalidOperationException("JWT SecretKey must be configured in appsettings.json under JwtSettings:SecretKey");
         var issuer = jwtSettings["Issuer"] ?? "StockFlowPro";
         var audience = jwtSettings["Audience"] ?? "StockFlowProClient";
         var expirationHours = int.Parse(jwtSettings["ExpirationHours"] ?? "8");
