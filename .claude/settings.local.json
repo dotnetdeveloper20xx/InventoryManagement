@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet new:*)",
+      "Bash(dotnet sln:*)",
+      "Bash(dotnet sln add:*)",
+      "Bash(dotnet add reference:*)",
+      "Bash(dotnet add package:*)",
+      "Bash(dotnet build:*)",
+      "Bash(ng version:*)",
+      "Bash(ng new:*)",
+      "Bash(npm install)",
+      "Bash(npm start)",
+      "Bash(timeout:*)",
+      "Bash(ping:*)",
+      "Bash(npx ng serve:*)",
+      "Bash(node node_modules/@angular/cli/bin/ng.js serve:*)",
+      "Bash(findstr:*)",
+      "Bash(dir:*)",
+      "Bash(dotnet run)",
+      "Bash(dotnet run:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "Bash(wc:*)",
+      "Bash(ng serve)",
+      "Bash(npx ng build:*)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)",
+      "Bash(powershell:*)"
+    ]
+  }
+}

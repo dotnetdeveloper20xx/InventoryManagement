@@ -1,0 +1,4283 @@
+# 🏭 Enterprise Inventory & Warehouse Management System (WMS)
+
+## Complete Project Specification Document
+
+---
+
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║                    SECTION 1: PROJECT VISION & OVERVIEW                       ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+## 1.1 Executive Summary
+
+**Project Name**: StockFlow Pro - Enterprise Warehouse Management System
+
+**Tagline**: *"Real-time inventory intelligence for modern supply chains"*
+
+**Purpose**: A comprehensive, enterprise-grade Inventory and Warehouse Management System that demonstrates mastery of full-stack development, complex business logic, real-time data operations, and modern software architecture patterns.
+
+**Target Portfolio Impact**:
+- Demonstrates **supply chain domain knowledge** (highly valued in enterprise)
+- Shows **complex transactional logic** (stock movements, auditing)
+- Exhibits **advanced reporting & analytics** capabilities
+- Proves ability to handle **multi-location, multi-user** scenarios
+- Showcases **real-world business rules** and **edge case handling**
+
+---
+
+## 1.2 Technology Stack
+
+| Layer | Technology | Version | Purpose |
+|-------|------------|---------|---------|
+| **Frontend** | Angular | 19.x | Standalone components, signals, new control flow |
+| **UI Components** | Angular custom build components we will NOT use third parties such as Syncfusion | Latest | Enterprise grids, charts, dashboards |
+| **State Management** | Angular Signals + RxJS | - | Reactive state with fine-grained updates |
+| **Backend** | ASP.NET Core | 8.0 | Web API with minimal APIs + controllers |
+| **ORM** | Entity Framework Core | 8.0 | Code-first with migrations |
+| **Database** | SQL Server | 2022 / LocalDB | Relational data with stored procedures |
+| **Authentication** | JWT + ASP.NET Identity | - | Role-based access control |
+| **API Documentation** | Swagger/OpenAPI | 3.0 | Interactive API docs |
+| **Mapping** | AutoMapper | 12.x | DTO mapping |
+| **Validation** | FluentValidation | 11.x | Request validation |
+| **Logging** | Serilog | - | Structured logging |
+| **Testing** | xUnit + Moq + Jest | - | Unit & integration tests |
+
+---
+
+## 1.3 Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              PRESENTATION LAYER                                  │
+│  ┌──────────────────────────────────────────────────────────────────────────┐   │
+│  │                        Angular 19 SPA Application                         │   │
+│  │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐        │   │
+│  │  │  Dashboard  │ │  Inventory  │ │   Orders    │ │  Warehouse  │ ...    │   │
+│  │  │   Module    │ │   Module    │ │   Module    │ │   Module    │        │   │
+│  │  └──────┬──────┘ └──────┬──────┘ └──────┬──────┘ └──────┬──────┘        │   │
+│  │         └────────────────┴────────────────┴────────────────┘              │   │
+│  │                                   │                                        │   │
+│  │                    ┌──────────────▼──────────────┐                        │   │
+│  │                    │      Core Services Layer     │                        │   │
+│  │                    │  (HTTP, State, Auth, Utils)  │                        │   │
+│  │                    └──────────────┬──────────────┘                        │   │
+│  └───────────────────────────────────┼──────────────────────────────────────┘   │
+└──────────────────────────────────────┼──────────────────────────────────────────┘
+                                       │ HTTP/REST
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                 API LAYER                                        │
+│  ┌──────────────────────────────────────────────────────────────────────────┐   │
+│  │                     ASP.NET Core 8 Web API                                │   │
+│  │  ┌─────────────────────────────────────────────────────────────────┐     │   │
+│  │  │                      API Controllers                             │     │   │
+│  │  │  Products │ Inventory │ Orders │ Warehouses │ Suppliers │ Reports│     │   │
+│  │  └─────────────────────────────────┬───────────────────────────────┘     │   │
+│  │                                    │                                      │   │
+│  │  ┌─────────────────────────────────▼───────────────────────────────┐     │   │
+│  │  │                      Middleware Pipeline                         │     │   │
+│  │  │  Auth │ Validation │ Exception │ Logging │ CORS │ Rate Limit    │     │   │
+│  │  └─────────────────────────────────┬───────────────────────────────┘     │   │
+│  └────────────────────────────────────┼─────────────────────────────────────┘   │
+└───────────────────────────────────────┼─────────────────────────────────────────┘
+                                        │
+┌───────────────────────────────────────┼─────────────────────────────────────────┐
+│                             APPLICATION LAYER                                    │
+│  ┌────────────────────────────────────▼────────────────────────────────────┐    │
+│  │                          Service Layer                                   │    │
+│  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐   │    │
+│  │  │   Product    │ │  Inventory   │ │  Purchase    │ │   Transfer   │   │    │
+│  │  │   Service    │ │   Service    │ │   Order Svc  │ │   Service    │   │    │
+│  │  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘   │    │
+│  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐   │    │
+│  │  │  Warehouse   │ │   Supplier   │ │   Report     │ │    Audit     │   │    │
+│  │  │   Service    │ │   Service    │ │   Service    │ │   Service    │   │    │
+│  │  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘   │    │
+│  └─────────────────────────────────────┬───────────────────────────────────┘    │
+│                                        │                                         │
+│  ┌─────────────────────────────────────▼───────────────────────────────────┐    │
+│  │                       Domain Services Layer                              │    │
+│  │  ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐        │    │
+│  │  │ Stock Movement   │ │ Valuation Engine │ │ Reorder Point    │        │    │
+│  │  │ Engine           │ │ (FIFO/LIFO/AVG)  │ │ Calculator       │        │    │
+│  │  └──────────────────┘ └──────────────────┘ └──────────────────┘        │    │
+│  │  ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐        │    │
+│  │  │ Barcode/SKU      │ │ Alert Engine     │ │ Batch/Lot        │        │    │
+│  │  │ Generator        │ │                  │ │ Tracker          │        │    │
+│  │  └──────────────────┘ └──────────────────┘ └──────────────────┘        │    │
+│  └─────────────────────────────────────┬───────────────────────────────────┘    │
+└────────────────────────────────────────┼────────────────────────────────────────┘
+                                         │
+┌────────────────────────────────────────┼────────────────────────────────────────┐
+│                              DOMAIN LAYER                                        │
+│  ┌─────────────────────────────────────▼───────────────────────────────────┐    │
+│  │                         Domain Entities                                  │    │
+│  │  Product │ Category │ Warehouse │ Location │ Supplier │ PurchaseOrder  │    │
+│  │  StockLevel │ StockMovement │ Transfer │ Adjustment │ BatchLot │ Alert │    │
+│  └─────────────────────────────────────┬───────────────────────────────────┘    │
+│                                        │                                         │
+│  ┌─────────────────────────────────────▼───────────────────────────────────┐    │
+│  │                      Domain Events & Rules                               │    │
+│  │  StockBelowReorderPoint │ OrderReceived │ TransferCompleted │ etc.      │    │
+│  └─────────────────────────────────────────────────────────────────────────┘    │
+└────────────────────────────────────────┬────────────────────────────────────────┘
+                                         │
+┌────────────────────────────────────────┼────────────────────────────────────────┐
+│                          INFRASTRUCTURE LAYER                                    │
+│  ┌─────────────────────────────────────▼───────────────────────────────────┐    │
+│  │                          Repository Layer                                │    │
+│  │  GenericRepository<T> │ ProductRepo │ InventoryRepo │ OrderRepo │ etc. │    │
+│  └─────────────────────────────────────┬───────────────────────────────────┘    │
+│                                        │                                         │
+│  ┌─────────────────────────────────────▼───────────────────────────────────┐    │
+│  │                     Entity Framework Core                                │    │
+│  │                        DbContext + Configurations                        │    │
+│  └─────────────────────────────────────┬───────────────────────────────────┘    │
+│                                        │                                         │
+│  ┌─────────────────────────────────────▼───────────────────────────────────┐    │
+│  │                         SQL Server Database                              │    │
+│  │         Tables │ Views │ Stored Procedures │ Triggers │ Indexes         │    │
+│  └─────────────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║                    SECTION 2: COMPLETE FEATURE SPECIFICATION                  ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+## 2.1 Module Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                          STOCKFLOW PRO - MODULES                                 │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  📊 DASHBOARD MODULE          │  📦 PRODUCT MODULE           │  🏭 WAREHOUSE    │
+│  ├─ Executive Dashboard       │  ├─ Product Catalog          │  ├─ Locations    │
+│  ├─ Inventory Overview        │  ├─ Categories               │  ├─ Zones        │
+│  ├─ Alert Center              │  ├─ Brands                   │  ├─ Bins/Slots   │
+│  ├─ Quick Actions             │  ├─ Units of Measure         │  ├─ Capacity     │
+│  └─ Performance Metrics       │  └─ Product Variants         │  └─ Layout View  │
+│                               │                              │                   │
+│  📋 INVENTORY MODULE          │  🛒 PURCHASE MODULE          │  🔄 TRANSFER     │
+│  ├─ Stock Levels              │  ├─ Purchase Orders          │  ├─ Create       │
+│  ├─ Stock Movements           │  ├─ Goods Receipt            │  ├─ In Transit   │
+│  ├─ Stock Adjustments         │  ├─ Supplier Management      │  ├─ Receive      │
+│  ├─ Stock Take/Count          │  ├─ Price Lists              │  └─ History      │
+│  ├─ Batch/Lot Tracking        │  └─ Returns to Supplier      │                   │
+│  └─ Expiry Management         │                              │                   │
+│                               │                              │                   │
+│  📈 REPORTS MODULE            │  ⚙️ SETTINGS MODULE          │  👥 ADMIN        │
+│  ├─ Inventory Valuation       │  ├─ Company Settings         │  ├─ Users        │
+│  ├─ Stock Movement Report     │  ├─ Warehouse Config         │  ├─ Roles        │
+│  ├─ Reorder Report            │  ├─ Numbering Series         │  ├─ Permissions  │
+│  ├─ Aging Analysis            │  ├─ Alert Thresholds         │  └─ Audit Log    │
+│  ├─ Supplier Performance      │  └─ System Preferences       │                   │
+│  └─ ABC Analysis              │                              │                   │
+│                                                                                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 2.2 Detailed Feature Specifications
+
+### 📊 MODULE 1: DASHBOARD
+
+#### 1.1 Executive Dashboard
+```yaml
+Purpose: High-level overview for management decision-making
+
+Widgets:
+  Inventory Value Card:
+    - Total inventory value (by valuation method)
+    - Comparison to previous period (%, absolute)
+    - Trend sparkline (30 days)
+    - Breakdown by warehouse (pie chart)
+  
+  Stock Health Card:
+    - Total SKUs: X,XXX
+    - In Stock: XX%
+    - Low Stock: XX%
+    - Out of Stock: XX%
+    - Overstocked: XX%
+    - Donut chart visualization
+  
+  Movement Summary Card:
+    - Items Received Today: XXX
+    - Items Dispatched Today: XXX
+    - Pending Transfers: XX
+    - Adjustments Today: XX
+    - Bar chart (last 7 days)
+  
+  Alert Summary Card:
+    - Critical Alerts: XX (red)
+    - Warning Alerts: XX (orange)
+    - Info Alerts: XX (blue)
+    - Click to navigate to Alert Center
+  
+  Top Moving Products:
+    - Top 10 products by movement volume
+    - Last 30/60/90 days filter
+    - Sortable grid with sparklines
+  
+  Warehouse Utilization:
+    - Capacity usage per warehouse
+    - Progress bars with thresholds
+    - Trend indicators
+  
+  Purchase Order Status:
+    - Pending: XX
+    - Partially Received: XX
+    - Overdue: XX
+    - Completed This Week: XX
+  
+  Inventory Turnover:
+    - Turnover ratio gauge
+    - Industry benchmark comparison
+    - Trend over 12 months
+
+Interactions:
+  - All widgets clickable to drill-down
+  - Date range selector (Today, Week, Month, Quarter, Year, Custom)
+  - Warehouse filter
+  - Auto-refresh toggle (30s, 1m, 5m, Off)
+  - Export dashboard to PDF
+  - Widget customization (drag, resize, show/hide)
+```
+
+#### 1.2 Alert Center
+```yaml
+Purpose: Centralized notification management
+
+Alert Types:
+  Critical (Red):
+    - Out of stock items
+    - Expired products
+    - Failed transactions
+    - System errors
+  
+  Warning (Orange):
+    - Below reorder point
+    - Approaching expiry (30 days)
+    - Overdue purchase orders
+    - Low warehouse capacity (>90%)
+  
+  Info (Blue):
+    - Purchase orders received
+    - Transfers completed
+    - Stock counts due
+    - New products added
+
+Features:
+  - Real-time alert stream
+  - Filter by type, severity, warehouse, date
+  - Mark as read/unread
+  - Snooze alerts
+  - Bulk actions (acknowledge, dismiss)
+  - Alert history (90 days)
+  - Email notification settings
+  - Alert rules configuration
+```
+
+---
+
+### 📦 MODULE 2: PRODUCT MANAGEMENT
+
+#### 2.1 Product Catalog
+```yaml
+Purpose: Complete product master data management
+
+Product Information:
+  Basic Details:
+    - Product ID (auto-generated)
+    - SKU (Stock Keeping Unit) - unique
+    - Barcode (EAN-13, UPC-A, Code-128)
+    - Product Name
+    - Short Description
+    - Long Description (rich text)
+    - Category (hierarchical)
+    - Sub-category
+    - Brand
+    - Manufacturer
+    - Model Number
+    - Product Status (Active, Inactive, Discontinued, Pending)
+  
+  Inventory Settings:
+    - Unit of Measure (primary)
+    - Secondary UOM (with conversion factor)
+    - Minimum Stock Level
+    - Maximum Stock Level
+    - Reorder Point
+    - Reorder Quantity
+    - Lead Time (days)
+    - Safety Stock
+    - ABC Classification (auto-calculated)
+    - Storage Requirements (temperature, humidity)
+  
+  Physical Attributes:
+    - Weight (kg)
+    - Length (cm)
+    - Width (cm)
+    - Height (cm)
+    - Volume (auto-calculated)
+    - Color
+    - Size
+    - Material
+  
+  Costing & Pricing:
+    - Standard Cost
+    - Last Purchase Price
+    - Average Cost (auto-calculated)
+    - MSRP
+    - Wholesale Price
+    - Minimum Order Quantity
+    - Price Effective Date
+  
+  Tracking:
+    - Track by Batch/Lot: Yes/No
+    - Track Expiry Date: Yes/No
+    - Track Serial Number: Yes/No
+    - Shelf Life (days)
+  
+  Media:
+    - Primary Image URL
+    - Additional Images (up to 5)
+    - Documents (spec sheets, MSDS)
+  
+  Supplier Information:
+    - Preferred Supplier
+    - Alternative Suppliers (ranked)
+    - Supplier Part Numbers
+    - Supplier Lead Times
+
+Grid Features:
+  - All Syncfusion grid features
+  - Inline editing for quick updates
+  - Bulk edit selected products
+  - Import from Excel
+  - Export to Excel/PDF
+  - Column chooser
+  - Saved views (My Products, Low Stock, etc.)
+  - Quick filters (category, brand, status)
+  - Advanced search builder
+
+Validations:
+  - SKU uniqueness check (async)
+  - Barcode format validation
+  - Required fields enforcement
+  - Logical validations (min < max stock)
+  - Circular category prevention
+```
+
+#### 2.2 Category Management
+```yaml
+Purpose: Hierarchical product categorization
+
+Features:
+  - Tree view with drag-drop reordering
+  - Up to 5 levels of nesting
+  - Category image/icon
+  - Default attributes per category
+  - Product count per category
+  - Bulk move products between categories
+  - Category merge capability
+  - SEO-friendly slugs
+  - Active/Inactive status
+
+Data:
+  - Category ID
+  - Parent Category ID
+  - Category Name
+  - Description
+  - Display Order
+  - Level
+  - Path (e.g., "Electronics > Computers > Laptops")
+  - Product Count
+  - Status
+```
+
+#### 2.3 Units of Measure
+```yaml
+Purpose: Handle different quantity measurements
+
+Features:
+  - Base units (Each, Kg, Liter, Meter)
+  - Derived units with conversion
+  - UOM groups (Weight, Length, Volume, Count)
+  - Decimal precision settings
+  - Rounding rules
+
+Examples:
+  - 1 Case = 24 Each
+  - 1 Pallet = 48 Cases
+  - 1 Kg = 1000 Grams
+  - 1 Meter = 100 Centimeters
+```
+
+---
+
+### 🏭 MODULE 3: WAREHOUSE MANAGEMENT
+
+#### 3.1 Warehouse Locations
+```yaml
+Purpose: Multi-warehouse inventory tracking
+
+Warehouse Master:
+  Basic Info:
+    - Warehouse ID (auto)
+    - Warehouse Code (e.g., "WH-NYC-01")
+    - Warehouse Name
+    - Type (Main, Distribution, Transit, Quarantine)
+    - Status (Active, Inactive, Under Maintenance)
+  
+  Address:
+    - Street Address
+    - City
+    - State/Province
+    - Postal Code
+    - Country
+    - Coordinates (Lat/Long)
+  
+  Contact:
+    - Manager Name
+    - Phone
+    - Email
+    - Operating Hours
+  
+  Capacity:
+    - Total Area (sq ft/m)
+    - Storage Capacity (cubic ft/m)
+    - Pallet Positions
+    - Current Utilization %
+  
+  Settings:
+    - Default Valuation Method (FIFO/LIFO/AVG)
+    - Allow Negative Stock: Yes/No
+    - Auto-Replenishment: Yes/No
+    - Picking Strategy (FIFO, FEFO, LIFO)
+
+Zone Management:
+  Purpose: Logical areas within warehouse
+  
+  Zones:
+    - Receiving Zone
+    - Storage Zone (Ambient, Cold, Frozen)
+    - Picking Zone
+    - Packing Zone
+    - Shipping Zone
+    - Quarantine Zone
+    - Returns Zone
+  
+  Zone Properties:
+    - Zone ID
+    - Zone Name
+    - Warehouse ID
+    - Temperature Range
+    - Humidity Range
+    - Product Categories Allowed
+    - Capacity
+
+Bin/Location Management:
+  Purpose: Specific storage positions
+  
+  Location Code Format: WH-ZONE-AISLE-RACK-LEVEL-BIN
+  Example: "NYC-A-01-05-03-B" (NYC Warehouse, Zone A, Aisle 1, Rack 5, Level 3, Bin B)
+  
+  Bin Properties:
+    - Bin ID
+    - Bin Code
+    - Zone ID
+    - Bin Type (Storage, Picking, Bulk, Reserve)
+    - Max Weight
+    - Max Volume
+    - Product Restrictions
+    - Current Contents
+    - Status (Available, Full, Reserved, Blocked)
+
+Visual Layout:
+  - Interactive warehouse map (SVG/Canvas)
+  - Color-coded zones
+  - Click bin to see contents
+  - Heat map for movement frequency
+  - 3D view option (basic)
+```
+
+---
+
+### 📋 MODULE 4: INVENTORY MANAGEMENT
+
+#### 4.1 Stock Levels
+```yaml
+Purpose: Real-time inventory visibility across all locations
+
+Stock Level View:
+  Grid Columns:
+    - Product SKU
+    - Product Name
+    - Category
+    - Warehouse
+    - Bin Location
+    - Batch/Lot Number
+    - Quantity On Hand
+    - Quantity Reserved
+    - Quantity Available (On Hand - Reserved)
+    - Quantity On Order (from POs)
+    - Quantity In Transit
+    - Reorder Point
+    - Stock Status (OK, Low, Critical, Out, Over)
+    - Unit Cost
+    - Total Value
+    - Last Movement Date
+    - Expiry Date (if applicable)
+
+Calculated Fields:
+  - Available = On Hand - Reserved - Quarantine
+  - Projected = Available + On Order - Committed
+  - Days of Stock = Available / Average Daily Usage
+  - Stock Status = Based on reorder point thresholds
+
+Views:
+  - By Product (aggregated across warehouses)
+  - By Warehouse (all products in location)
+  - By Category
+  - By Supplier
+  - Low Stock Only
+  - Out of Stock Only
+  - Expiring Soon
+
+Features:
+  - Real-time updates (SignalR optional, or polling)
+  - Drill-down to movement history
+  - Quick adjustment from grid
+  - Reserve stock for orders
+  - Transfer request from grid
+  - Reorder suggestion with one-click PO creation
+```
+
+#### 4.2 Stock Movements
+```yaml
+Purpose: Complete audit trail of all inventory changes
+
+Movement Types:
+  Inbound:
+    - PO Receipt (Purchase Order)
+    - Transfer In
+    - Return from Customer
+    - Stock Adjustment (Positive)
+    - Opening Balance
+    - Production Output
+  
+  Outbound:
+    - Sales Order (if applicable)
+    - Transfer Out
+    - Return to Supplier
+    - Stock Adjustment (Negative)
+    - Damage/Loss Write-off
+    - Production Consumption
+  
+  Internal:
+    - Bin-to-Bin Move
+    - Quality Status Change
+    - Batch Merge/Split
+
+Movement Record:
+  - Movement ID (auto)
+  - Movement Number (formatted: "MOV-2024-00001")
+  - Movement Type
+  - Movement Date
+  - Product ID
+  - From Warehouse
+  - From Bin
+  - To Warehouse
+  - To Bin
+  - Quantity
+  - UOM
+  - Batch/Lot Number
+  - Expiry Date
+  - Unit Cost
+  - Total Cost
+  - Reference Type (PO, Transfer, Adjustment)
+  - Reference ID
+  - Reason Code
+  - Notes
+  - Created By
+  - Created Date
+  - Status (Pending, Completed, Cancelled)
+
+Business Rules:
+  - Every quantity change creates a movement record
+  - Movements are immutable (no edit, only reverse)
+  - Running balance maintained
+  - Cost tracking per movement
+  - Automatic FIFO/LIFO cost allocation
+```
+
+#### 4.3 Stock Adjustments
+```yaml
+Purpose: Handle inventory discrepancies and corrections
+
+Adjustment Types:
+  Positive Adjustments:
+    - Found Items
+    - Inventory Count Correction
+    - Return Processing
+    - System Error Correction
+  
+  Negative Adjustments:
+    - Damaged Goods
+    - Expired Products
+    - Lost/Missing Items
+    - Theft
+    - Quality Rejection
+    - System Error Correction
+
+Adjustment Process:
+  1. Create Adjustment Request
+     - Select products
+     - Enter quantities (+/-)
+     - Select reason code
+     - Add notes/evidence
+  
+  2. Approval Workflow
+     - Under threshold: Auto-approved
+     - Over threshold: Manager approval required
+     - High value: Multiple approvals
+  
+  3. Post Adjustment
+     - Update stock levels
+     - Create movement records
+     - Update inventory value
+     - Post to audit log
+
+Adjustment Document:
+  - Adjustment ID
+  - Adjustment Number
+  - Adjustment Date
+  - Warehouse
+  - Type (Positive/Negative)
+  - Reason Code
+  - Status (Draft, Pending Approval, Approved, Posted, Rejected)
+  - Lines:
+    - Product
+    - Bin
+    - Batch
+    - Current Qty
+    - Adjusted Qty
+    - Variance
+    - Unit Cost
+    - Value Impact
+  - Total Value Impact
+  - Attachments (photos, documents)
+  - Approval History
+  - Notes
+```
+
+#### 4.4 Stock Take / Inventory Count
+```yaml
+Purpose: Periodic inventory verification
+
+Count Types:
+  - Full Count (entire warehouse)
+  - Cycle Count (selected products/bins)
+  - Spot Count (random verification)
+  - ABC Count (based on classification)
+
+Count Process:
+  1. Schedule Count
+     - Select count type
+     - Select warehouse/zones/bins
+     - Select products (or all)
+     - Set count date
+     - Assign counters
+  
+  2. Generate Count Sheets
+     - Print or mobile device
+     - Freeze system quantities
+     - Blind count option (hide expected qty)
+  
+  3. Enter Counts
+     - Mobile entry or desktop
+     - Multiple count entry (verification)
+     - Variance highlighting
+  
+  4. Review Variances
+     - Automatic variance calculation
+     - Recount high variances
+     - Investigate discrepancies
+  
+  5. Post Count
+     - Generate adjustments
+     - Update stock levels
+     - Create audit trail
+
+Count Document:
+  - Count ID
+  - Count Number
+  - Count Type
+  - Warehouse
+  - Count Date
+  - Status (Scheduled, In Progress, Pending Review, Completed, Cancelled)
+  - Assigned Users
+  - Lines:
+    - Product
+    - Bin
+    - Batch
+    - System Qty
+    - Count 1
+    - Count 2 (verification)
+    - Final Count
+    - Variance
+    - Variance %
+    - Variance Value
+    - Recount Required
+    - Notes
+  - Summary:
+    - Total Lines
+    - Lines Counted
+    - Lines with Variance
+    - Total Variance Value
+```
+
+#### 4.5 Batch/Lot Tracking
+```yaml
+Purpose: Track inventory by production batch or lot
+
+When Used:
+  - Food products
+  - Pharmaceuticals
+  - Chemicals
+  - Any product requiring traceability
+
+Batch Master:
+  - Batch ID
+  - Batch Number (user-defined or auto)
+  - Product ID
+  - Manufacture Date
+  - Expiry Date
+  - Receipt Date
+  - Supplier
+  - Supplier Batch Number
+  - Certificate of Analysis
+  - Status (Available, On Hold, Expired, Recalled)
+  - Notes
+
+Tracking Features:
+  - Full traceability (upstream and downstream)
+  - Batch-level stock
+  - FEFO (First Expired, First Out) picking
+  - Expiry alerts
+  - Recall management
+  - Batch merge/split
+  - Quality holds per batch
+```
+
+---
+
+### 🛒 MODULE 5: PURCHASE ORDER MANAGEMENT
+
+#### 5.1 Purchase Orders
+```yaml
+Purpose: Manage procurement of inventory
+
+PO Lifecycle:
+  Draft → Submitted → Approved → Sent to Supplier → Partially Received → Fully Received → Closed
+
+PO Header:
+  - PO ID
+  - PO Number (auto: "PO-2024-00001")
+  - Supplier ID
+  - Warehouse (receiving)
+  - Order Date
+  - Expected Delivery Date
+  - Payment Terms
+  - Shipping Terms
+  - Currency
+  - Exchange Rate
+  - Status
+  - Priority (Normal, Urgent, Critical)
+  - Buyer (user)
+  - Approval Status
+  - Notes
+
+PO Lines:
+  - Line Number
+  - Product ID
+  - Description
+  - Quantity Ordered
+  - Unit of Measure
+  - Unit Price
+  - Discount %
+  - Tax Rate
+  - Line Total
+  - Quantity Received
+  - Quantity Pending
+  - Expected Date (line-level)
+  - Supplier Part Number
+  - Notes
+
+PO Totals:
+  - Subtotal
+  - Discount Total
+  - Tax Total
+  - Shipping Cost
+  - Grand Total
+
+Features:
+  - Create from reorder suggestions
+  - Copy from previous PO
+  - Blanket PO (scheduled releases)
+  - Multi-warehouse PO
+  - Supplier price comparison
+  - Approval workflow
+  - Email PO to supplier (template)
+  - PO revisions with history
+  - Partial receipt handling
+  - Over-receipt tolerance
+  - Price variance warnings
+```
+
+#### 5.2 Goods Receipt
+```yaml
+Purpose: Record receipt of purchased goods
+
+Receipt Process:
+  1. Select PO to receive
+  2. Enter received quantities
+  3. Inspect quality (optional)
+  4. Assign batch numbers
+  5. Select bin locations
+  6. Confirm receipt
+  7. Update stock and PO status
+
+Goods Receipt Note (GRN):
+  - GRN ID
+  - GRN Number
+  - PO Number
+  - Supplier
+  - Receipt Date
+  - Warehouse
+  - Receiver (user)
+  - Status (Draft, Posted)
+  - Lines:
+    - Product
+    - Ordered Qty
+    - Received Qty
+    - Rejected Qty (quality)
+    - Bin Location
+    - Batch/Lot Number
+    - Expiry Date
+    - Unit Cost
+    - Total Cost
+    - Inspection Status
+  - Attachments (delivery note, photos)
+  - Notes
+
+Quality Inspection:
+  - Inspection required flag
+  - Inspection criteria checklist
+  - Pass/Fail status
+  - Quarantine handling
+  - Quality holds
+```
+
+#### 5.3 Supplier Management
+```yaml
+Purpose: Maintain supplier master data and performance
+
+Supplier Master:
+  Basic Info:
+    - Supplier ID
+    - Supplier Code
+    - Company Name
+    - Trading Name
+    - Tax ID / VAT Number
+    - Supplier Type (Manufacturer, Distributor, Wholesaler)
+    - Status (Active, Inactive, Blocked, Pending Approval)
+  
+  Address:
+    - Billing Address
+    - Shipping Address (if different)
+    - Multiple addresses support
+  
+  Contacts:
+    - Primary Contact Name
+    - Email
+    - Phone
+    - Position
+    - Multiple contacts support
+  
+  Commercial Terms:
+    - Payment Terms
+    - Credit Limit
+    - Currency
+    - Minimum Order Value
+    - Shipping Terms (Incoterms)
+    - Lead Time (default)
+  
+  Banking:
+    - Bank Name
+    - Account Number
+    - Routing/Sort Code
+    - SWIFT/BIC
+  
+  Documents:
+    - Contracts
+    - Certificates
+    - Tax documents
+
+Supplier Performance:
+  - On-Time Delivery Rate %
+  - Quality Acceptance Rate %
+  - Average Lead Time
+  - Price Competitiveness
+  - Response Time
+  - Total Orders
+  - Total Spend
+  - Rating (1-5 stars)
+```
+
+---
+
+### 🔄 MODULE 6: STOCK TRANSFERS
+
+#### 6.1 Inter-Warehouse Transfers
+```yaml
+Purpose: Move stock between warehouse locations
+
+Transfer Lifecycle:
+  Draft → Submitted → Approved → Shipped → In Transit → Received → Completed
+
+Transfer Types:
+  - Inter-warehouse (different warehouses)
+  - Inter-zone (same warehouse, different zones)
+  - Bin-to-bin (same zone, different bins)
+
+Transfer Request:
+  - Transfer ID
+  - Transfer Number
+  - Source Warehouse
+  - Destination Warehouse
+  - Requested Date
+  - Required Date
+  - Priority
+  - Status
+  - Requestor
+  - Lines:
+    - Product
+    - Source Bin
+    - Destination Bin
+    - Requested Qty
+    - Approved Qty
+    - Shipped Qty
+    - Received Qty
+    - Batch/Lot
+    - UOM
+    - Notes
+
+Transfer Process:
+  1. Create Request
+     - Select source/destination
+     - Add products and quantities
+     - Submit for approval
+  
+  2. Approval (if required)
+     - Manager reviews
+     - Approves/rejects
+     - Modifies quantities
+  
+  3. Ship/Dispatch
+     - Pick items from source
+     - Create shipment
+     - Generate transfer document
+     - Update status to "In Transit"
+     - Reduce source stock
+  
+  4. In Transit
+     - Stock visible as "In Transit"
+     - Track shipment
+     - Handle delays
+  
+  5. Receive
+     - Confirm receipt at destination
+     - Enter received quantities
+     - Handle variances
+     - Update destination stock
+  
+  6. Complete
+     - All items received
+     - Close transfer
+     - Update audit trail
+
+Features:
+  - Bulk transfer creation
+  - Transfer templates
+  - Partial shipments
+  - Partial receipts
+  - Transit time tracking
+  - Cost allocation (freight)
+```
+
+---
+
+### 📈 MODULE 7: REPORTS & ANALYTICS
+
+#### 7.1 Inventory Valuation Report
+```yaml
+Purpose: Financial value of inventory by valuation method
+
+Valuation Methods:
+  FIFO (First In, First Out):
+    - Oldest costs used first
+    - Common for perishables
+    - Higher profits in inflation
+  
+  LIFO (Last In, First Out):
+    - Newest costs used first
+    - Tax benefits in inflation
+    - Not allowed under IFRS
+  
+  Weighted Average:
+    - Average of all costs
+    - Simple calculation
+    - Smooths cost fluctuations
+  
+  Specific Identification:
+    - Actual cost per unit
+    - For serialized/batch items
+    - Most accurate
+
+Report Columns:
+  - Product SKU
+  - Product Name
+  - Category
+  - Warehouse
+  - Quantity on Hand
+  - Unit Cost (method-specific)
+  - Total Value
+  - Last Purchase Cost
+  - Replacement Cost
+  - Variance (Book vs Market)
+
+Report Features:
+  - Filter by warehouse, category, date
+  - Comparison: current vs previous period
+  - Export to Excel with formulas
+  - Drill-down to transactions
+  - Summary by category/warehouse
+  - Aging buckets (0-30, 31-60, 61-90, 90+)
+```
+
+#### 7.2 Stock Movement Report
+```yaml
+Purpose: Analyze all inventory movements over time
+
+Report Parameters:
+  - Date Range
+  - Warehouse(s)
+  - Product(s)
+  - Category(s)
+  - Movement Type(s)
+  - User(s)
+
+Report Output:
+  Detail View:
+    - Movement Date
+    - Movement Number
+    - Type
+    - Product
+    - From Location
+    - To Location
+    - Quantity
+    - UOM
+    - Unit Cost
+    - Total Value
+    - Reference
+    - User
+    - Notes
+  
+  Summary View:
+    - By Product: Opening, In, Out, Closing
+    - By Warehouse: Total In, Total Out, Net Change
+    - By Type: Count and Value per movement type
+    - By Date: Daily/Weekly/Monthly totals
+
+Visualizations:
+  - Line chart: movement trends
+  - Bar chart: movement by type
+  - Heat map: peak movement times
+```
+
+#### 7.3 Reorder Report
+```yaml
+Purpose: Items requiring replenishment
+
+Report Columns:
+  - Product SKU
+  - Product Name
+  - Category
+  - Supplier
+  - Current Stock
+  - Reorder Point
+  - Below Reorder By
+  - Safety Stock
+  - Reorder Quantity
+  - On Order Quantity
+  - Lead Time
+  - Estimated Stockout Date
+  - Suggested Order Qty
+  - Est. Order Value
+  - Priority Score
+
+Features:
+  - Auto-calculate optimal order quantities
+  - Consider open POs
+  - Factor in lead time
+  - One-click PO creation
+  - Bulk PO generation
+  - ABC prioritization
+```
+
+#### 7.4 ABC Analysis Report
+```yaml
+Purpose: Classify products by importance (Pareto principle)
+
+Classification:
+  A Items (Top ~20%):
+    - ~80% of total value
+    - Tight control required
+    - Frequent cycle counts
+    - Lower safety stock (high turnover)
+  
+  B Items (Middle ~30%):
+    - ~15% of total value
+    - Moderate control
+    - Regular cycle counts
+    - Moderate safety stock
+  
+  C Items (Bottom ~50%):
+    - ~5% of total value
+    - Basic control
+    - Infrequent counts
+    - Higher safety stock (ordering cost > holding cost)
+
+Analysis Criteria:
+  - By Value (consumption value)
+  - By Quantity (units consumed)
+  - By Transaction Frequency
+  - Custom weighting
+
+Report Output:
+  - Product listing with ABC class
+  - Class distribution pie chart
+  - Value distribution bar chart
+  - Class-wise inventory metrics
+  - Reclassification suggestions
+```
+
+#### 7.5 Supplier Performance Report
+```yaml
+Purpose: Evaluate and compare supplier performance
+
+Metrics:
+  Delivery Performance:
+    - On-Time Delivery Rate
+    - Average Lead Time
+    - Lead Time Variance
+    - Early/Late Delivery %
+  
+  Quality Performance:
+    - Acceptance Rate
+    - Defect Rate
+    - Return Rate
+    - Quality Hold Incidents
+  
+  Commercial Performance:
+    - Price Stability
+    - Invoice Accuracy
+    - Contract Compliance
+    - Response Time
+  
+  Volume:
+    - Total Orders
+    - Total Value
+    - Order Frequency
+    - Average Order Value
+
+Visualizations:
+  - Radar chart: overall performance
+  - Trend lines: performance over time
+  - Comparison grid: supplier vs supplier
+  - Ranking table with scores
+```
+
+#### 7.6 Aging Analysis Report
+```yaml
+Purpose: Identify slow-moving and obsolete stock
+
+Aging Buckets:
+  - 0-30 days (Fresh)
+  - 31-60 days
+  - 61-90 days
+  - 91-180 days
+  - 181-365 days
+  - Over 365 days (Obsolete risk)
+
+Report Columns:
+  - Product
+  - Total Qty
+  - Qty per bucket
+  - Value per bucket
+  - Last Movement Date
+  - Days Since Last Movement
+  - Turnover Rate
+  - Obsolescence Risk Score
+
+Actions:
+  - Identify markdown candidates
+  - Write-off suggestions
+  - Transfer to clearance zone
+  - Return to supplier candidates
+```
+
+---
+
+### ⚙️ MODULE 8: SYSTEM SETTINGS
+
+#### 8.1 Company Settings
+```yaml
+Settings:
+  - Company Name
+  - Logo
+  - Address
+  - Tax Registration
+  - Fiscal Year
+  - Base Currency
+  - Date Format
+  - Number Format
+  - Time Zone
+```
+
+#### 8.2 Inventory Settings
+```yaml
+Settings:
+  Valuation:
+    - Default Valuation Method
+    - Allow negative stock
+    - Auto-post inventory movements
+  
+  Numbering:
+    - PO Number Format
+    - GRN Number Format
+    - Transfer Number Format
+    - Adjustment Number Format
+    - SKU Generation Rule
+    - Barcode Generation Rule
+  
+  Alerts:
+    - Low stock threshold %
+    - Critical stock threshold %
+    - Expiry warning days
+    - Overdue PO days
+  
+  Approvals:
+    - Adjustment approval threshold
+    - PO approval threshold
+    - Transfer approval required
+```
+
+#### 8.3 User & Role Management
+```yaml
+Roles:
+  Administrator:
+    - Full system access
+    - User management
+    - System configuration
+  
+  Warehouse Manager:
+    - All warehouse operations
+    - Approve adjustments/transfers
+    - View all reports
+  
+  Inventory Clerk:
+    - Stock operations
+    - Create adjustments (pending approval)
+    - Limited reports
+  
+  Purchaser:
+    - Purchase order management
+    - Supplier management
+    - Receiving goods
+  
+  Viewer:
+    - Read-only access
+    - View reports
+    - Dashboard access
+
+Permissions:
+  Products:
+    - View, Create, Edit, Delete, Import, Export
+  Inventory:
+    - View, Adjust, Transfer, Count
+  Purchase:
+    - View, Create, Edit, Approve, Receive
+  Reports:
+    - View, Export, Schedule
+  Settings:
+    - View, Edit
+  Users:
+    - View, Create, Edit, Delete
+```
+
+---
+
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║                    SECTION 3: COMPLETE DATA MODEL                             ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+## 3.1 Entity Relationship Diagram (Text)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           CORE ENTITIES                                          │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  ┌──────────────┐         ┌──────────────┐         ┌──────────────┐            │
+│  │   Category   │◄───────┤│   Product    │├────────►│    Brand     │            │
+│  │──────────────│    ┌───►│──────────────│         │──────────────│            │
+│  │ CategoryId   │    │    │ ProductId    │         │ BrandId      │            │
+│  │ ParentId     │────┘    │ SKU          │         │ Name         │            │
+│  │ Name         │         │ Barcode      │         └──────────────┘            │
+│  │ Path         │         │ Name         │                                      │
+│  └──────────────┘         │ CategoryId   │         ┌──────────────┐            │
+│                           │ BrandId      │├────────►│    UOM       │            │
+│  ┌──────────────┐         │ UOMId        │         │──────────────│            │
+│  │   Supplier   │◄────────┤│ SupplierId   │         │ UOMId        │            │
+│  │──────────────│         │ ReorderPoint │         │ Name         │            │
+│  │ SupplierId   │         │ ReorderQty   │         │ Symbol       │            │
+│  │ Code         │         │ StandardCost │         └──────────────┘            │
+│  │ Name         │         │ Status       │                                      │
+│  │ Email        │         └──────────────┘                                      │
+│  │ Phone        │                │                                              │
+│  │ PaymentTerms │                │                                              │
+│  └──────────────┘                │                                              │
+│         │                        │                                              │
+│         │                        ▼                                              │
+│         │              ┌──────────────────┐                                     │
+│         │              │   StockLevel     │                                     │
+│         │              │──────────────────│                                     │
+│         │              │ StockLevelId     │                                     │
+│         │              │ ProductId        │                                     │
+│         │              │ WarehouseId      │◄────────┐                           │
+│         │              │ BinId            │         │                           │
+│         │              │ BatchId          │         │                           │
+│         │              │ QuantityOnHand   │         │                           │
+│         │              │ QuantityReserved │         │                           │
+│         │              │ UnitCost         │         │                           │
+│         │              └──────────────────┘         │                           │
+│         │                        │                  │                           │
+│         │                        ▼                  │                           │
+│         │              ┌──────────────────┐   ┌─────┴────────┐                  │
+│         │              │  StockMovement   │   │  Warehouse   │                  │
+│         │              │──────────────────│   │──────────────│                  │
+│         │              │ MovementId       │   │ WarehouseId  │                  │
+│         │              │ MovementNumber   │   │ Code         │                  │
+│         │              │ ProductId        │   │ Name         │                  │
+│         │              │ MovementType     │   │ Address      │                  │
+│         │              │ FromWarehouseId  │   │ Capacity     │                  │
+│         │              │ ToWarehouseId    │   └──────┬───────┘                  │
+│         │              │ Quantity         │          │                          │
+│         │              │ UnitCost         │          ▼                          │
+│         │              │ ReferenceType    │   ┌──────────────┐                  │
+│         │              │ ReferenceId      │   │    Zone      │                  │
+│         │              └──────────────────┘   │──────────────│                  │
+│         │                                     │ ZoneId       │                  │
+│         │                                     │ WarehouseId  │                  │
+│         │                                     │ Name         │                  │
+│         │                                     │ Type         │                  │
+│         │                                     └──────┬───────┘                  │
+│         │                                            │                          │
+│         │                                            ▼                          │
+│         │                                     ┌──────────────┐                  │
+│         │                                     │     Bin      │                  │
+│         │                                     │──────────────│                  │
+│         │                                     │ BinId        │                  │
+│         │                                     │ ZoneId       │                  │
+│         │                                     │ BinCode      │                  │
+│         │                                     │ MaxWeight    │                  │
+│         │                                     │ MaxVolume    │                  │
+│         │                                     └──────────────┘                  │
+│         │                                                                       │
+│         ▼                                                                       │
+│  ┌───────────────────┐       ┌───────────────────┐                             │
+│  │  PurchaseOrder    │       │ PurchaseOrderLine │                             │
+│  │───────────────────│       │───────────────────│                             │
+│  │ PurchaseOrderId   │◄──────┤│ PurchaseOrderId   │                             │
+│  │ PONumber          │       │ LineNumber        │                             │
+│  │ SupplierId        │       │ ProductId         │                             │
+│  │ WarehouseId       │       │ QuantityOrdered   │                             │
+│  │ OrderDate         │       │ QuantityReceived  │                             │
+│  │ ExpectedDate      │       │ UnitPrice         │                             │
+│  │ Status            │       │ LineTotal         │                             │
+│  │ TotalAmount       │       └───────────────────┘                             │
+│  └───────────────────┘                                                         │
+│         │                                                                       │
+│         ▼                                                                       │
+│  ┌───────────────────┐       ┌───────────────────┐                             │
+│  │  GoodsReceipt     │       │ GoodsReceiptLine  │                             │
+│  │───────────────────│       │───────────────────│                             │
+│  │ GoodsReceiptId    │◄──────┤│ GoodsReceiptId    │                             │
+│  │ GRNNumber         │       │ ProductId         │                             │
+│  │ PurchaseOrderId   │       │ QuantityReceived  │                             │
+│  │ ReceiptDate       │       │ QuantityRejected  │                             │
+│  │ Status            │       │ BinId             │                             │
+│  └───────────────────┘       │ BatchId           │                             │
+│                              │ UnitCost          │                             │
+│                              └───────────────────┘                             │
+│                                                                                 │
+│  ┌───────────────────┐       ┌───────────────────┐                             │
+│  │  Transfer         │       │  TransferLine     │                             │
+│  │───────────────────│       │───────────────────│                             │
+│  │ TransferId        │◄──────┤│ TransferId        │                             │
+│  │ TransferNumber    │       │ ProductId         │                             │
+│  │ FromWarehouseId   │       │ FromBinId         │                             │
+│  │ ToWarehouseId     │       │ ToBinId           │                             │
+│  │ RequestedDate     │       │ RequestedQty      │                             │
+│  │ Status            │       │ ShippedQty        │                             │
+│  └───────────────────┘       │ ReceivedQty       │                             │
+│                              └───────────────────┘                             │
+│                                                                                 │
+│  ┌───────────────────┐       ┌───────────────────┐                             │
+│  │  StockAdjustment  │       │ AdjustmentLine    │                             │
+│  │───────────────────│       │───────────────────│                             │
+│  │ AdjustmentId      │◄──────┤│ AdjustmentId      │                             │
+│  │ AdjustmentNumber  │       │ ProductId         │                             │
+│  │ WarehouseId       │       │ BinId             │                             │
+│  │ AdjustmentDate    │       │ BatchId           │                             │
+│  │ ReasonCode        │       │ QuantityBefore    │                             │
+│  │ Status            │       │ QuantityAfter     │                             │
+│  │ TotalValueImpact  │       │ Variance          │                             │
+│  └───────────────────┘       │ UnitCost          │                             │
+│                              └───────────────────┘                             │
+│                                                                                 │
+│  ┌───────────────────┐       ┌───────────────────┐                             │
+│  │  StockCount       │       │  StockCountLine   │                             │
+│  │───────────────────│       │───────────────────│                             │
+│  │ StockCountId      │◄──────┤│ StockCountId      │                             │
+│  │ CountNumber       │       │ ProductId         │                             │
+│  │ WarehouseId       │       │ BinId             │                             │
+│  │ CountType         │       │ BatchId           │                             │
+│  │ CountDate         │       │ SystemQty         │                             │
+│  │ Status            │       │ CountedQty        │                             │
+│  └───────────────────┘       │ Variance          │                             │
+│                              └───────────────────┘                             │
+│                                                                                 │
+│  ┌───────────────────┐                                                         │
+│  │     Batch         │                                                         │
+│  │───────────────────│                                                         │
+│  │ BatchId           │                                                         │
+│  │ BatchNumber       │                                                         │
+│  │ ProductId         │                                                         │
+│  │ ManufactureDate   │                                                         │
+│  │ ExpiryDate        │                                                         │
+│  │ SupplierId        │                                                         │
+│  │ Status            │                                                         │
+│  └───────────────────┘                                                         │
+│                                                                                 │
+│  ┌───────────────────┐       ┌───────────────────┐                             │
+│  │     User          │       │     Role          │                             │
+│  │───────────────────│       │───────────────────│                             │
+│  │ UserId            │       │ RoleId            │                             │
+│  │ Username          │◄─────►│ RoleName          │                             │
+│  │ Email             │       │ Permissions       │                             │
+│  │ PasswordHash      │       └───────────────────┘                             │
+│  │ WarehouseId       │                                                         │
+│  │ IsActive          │                                                         │
+│  └───────────────────┘                                                         │
+│                                                                                 │
+│  ┌───────────────────┐       ┌───────────────────┐                             │
+│  │   AuditLog        │       │   Alert           │                             │
+│  │───────────────────│       │───────────────────│                             │
+│  │ AuditLogId        │       │ AlertId           │                             │
+│  │ EntityType        │       │ AlertType         │                             │
+│  │ EntityId          │       │ Severity          │                             │
+│  │ Action            │       │ ProductId         │                             │
+│  │ OldValues         │       │ WarehouseId       │                             │
+│  │ NewValues         │       │ Message           │                             │
+│  │ UserId            │       │ IsRead            │                             │
+│  │ Timestamp         │       │ CreatedDate       │                             │
+│  └───────────────────┘       └───────────────────┘                             │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 3.2 Complete Entity Definitions
+
+### Core Entities
+
+```csharp
+// ═══════════════════════════════════════════════════════════════════════════════
+// PRODUCT & CATALOG ENTITIES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// <summary>
+/// Product category with hierarchical support (up to 5 levels)
+/// Example hierarchy: Electronics > Computers > Laptops > Gaming Laptops
+/// </summary>
+public class Category
+{
+    public int CategoryId { get; set; }
+    public int? ParentCategoryId { get; set; }
+    public string CategoryCode { get; set; }           // "ELEC-COMP-LAPTOP"
+    public string Name { get; set; }                   // "Laptops"
+    public string Description { get; set; }
+    public string Path { get; set; }                   // "Electronics/Computers/Laptops"
+    public string FullPath { get; set; }               // "Electronics > Computers > Laptops"
+    public int Level { get; set; }                     // 1-5
+    public int DisplayOrder { get; set; }
+    public string ImageUrl { get; set; }
+    public bool IsActive { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public DateTime? ModifiedDate { get; set; }
+    
+    // Navigation
+    public Category ParentCategory { get; set; }
+    public ICollection<Category> ChildCategories { get; set; }
+    public ICollection<Product> Products { get; set; }
+}
+
+/// <summary>
+/// Product brand/manufacturer
+/// </summary>
+public class Brand
+{
+    public int BrandId { get; set; }
+    public string BrandCode { get; set; }              // "APPLE"
+    public string Name { get; set; }                   // "Apple Inc."
+    public string Description { get; set; }
+    public string LogoUrl { get; set; }
+    public string Website { get; set; }
+    public string Country { get; set; }
+    public bool IsActive { get; set; }
+    public DateTime CreatedDate { get; set; }
+    
+    // Navigation
+    public ICollection<Product> Products { get; set; }
+}
+
+/// <summary>
+/// Unit of Measure with conversion support
+/// </summary>
+public class UnitOfMeasure
+{
+    public int UOMId { get; set; }
+    public string UOMCode { get; set; }                // "EACH", "KG", "BOX"
+    public string Name { get; set; }                   // "Each", "Kilogram", "Box"
+    public string Symbol { get; set; }                 // "ea", "kg", "box"
+    public string UOMType { get; set; }                // "Count", "Weight", "Volume", "Length"
+    public int? BaseUOMId { get; set; }                // Reference to base unit
+    public decimal ConversionFactor { get; set; }      // 1 Box = 24 Each → 24
+    public int DecimalPlaces { get; set; }             // 0 for Each, 3 for Kg
+    public bool IsBaseUnit { get; set; }
+    public bool IsActive { get; set; }
+    
+    // Navigation
+    public UnitOfMeasure BaseUOM { get; set; }
+    public ICollection<UnitOfMeasure> DerivedUOMs { get; set; }
+}
+
+/// <summary>
+/// Core Product entity - the heart of the inventory system
+/// </summary>
+public class Product
+{
+    public int ProductId { get; set; }
+    
+    // ─── IDENTIFICATION ───────────────────────────────────────────────────────
+    public string SKU { get; set; }                    // "LAPTOP-DELL-XPS15-BLK"
+    public string Barcode { get; set; }                // "0123456789012" (EAN-13)
+    public string BarcodeType { get; set; }            // "EAN13", "UPC-A", "CODE128"
+    public string Name { get; set; }                   // "Dell XPS 15 Laptop - Black"
+    public string ShortDescription { get; set; }       // Max 200 chars
+    public string FullDescription { get; set; }        // Rich text/HTML
+    public string ModelNumber { get; set; }            // "XPS15-9520"
+    
+    // ─── CLASSIFICATION ───────────────────────────────────────────────────────
+    public int CategoryId { get; set; }
+    public int? BrandId { get; set; }
+    public string ABCClassification { get; set; }      // "A", "B", "C"
+    public string ProductType { get; set; }            // "Inventory", "NonInventory", "Service"
+    public ProductStatus Status { get; set; }          // Active, Inactive, Discontinued, PendingApproval
+    
+    // ─── UNITS & QUANTITIES ───────────────────────────────────────────────────
+    public int PrimaryUOMId { get; set; }              // How we count it (Each)
+    public int? SecondaryUOMId { get; set; }           // Alternate (Box)
+    public decimal? SecondaryUOMConversion { get; set; } // 1 Box = 12 Each
+    
+    // ─── INVENTORY SETTINGS ───────────────────────────────────────────────────
+    public decimal MinStockLevel { get; set; }         // 10
+    public decimal MaxStockLevel { get; set; }         // 1000
+    public decimal ReorderPoint { get; set; }          // 50 (trigger alert)
+    public decimal ReorderQuantity { get; set; }       // 200 (suggested order qty)
+    public decimal SafetyStock { get; set; }           // 20 (buffer)
+    public int LeadTimeDays { get; set; }              // 14 (supplier delivery)
+    
+    // ─── TRACKING OPTIONS ─────────────────────────────────────────────────────
+    public bool TrackByBatch { get; set; }             // Lot tracking
+    public bool TrackBySerial { get; set; }            // Serial number tracking
+    public bool TrackExpiry { get; set; }              // Expiration date tracking
+    public int? ShelfLifeDays { get; set; }            // 365 days
+    
+    // ─── PHYSICAL ATTRIBUTES ──────────────────────────────────────────────────
+    public decimal? Weight { get; set; }               // In KG
+    public decimal? Length { get; set; }               // In CM
+    public decimal? Width { get; set; }                // In CM
+    public decimal? Height { get; set; }               // In CM
+    public decimal? Volume { get; set; }               // Calculated: L*W*H in cubic CM
+    public string Color { get; set; }
+    public string Size { get; set; }
+    
+    // ─── COSTING & PRICING ────────────────────────────────────────────────────
+    public decimal StandardCost { get; set; }          // Budgeted cost
+    public decimal LastPurchasePrice { get; set; }     // Most recent PO price
+    public decimal AverageCost { get; set; }           // Weighted average
+    public decimal? MSRP { get; set; }                 // List price
+    public decimal? WholesalePrice { get; set; }
+    public decimal MinOrderQuantity { get; set; }      // MOQ for purchasing
+    
+    // ─── SUPPLIER ─────────────────────────────────────────────────────────────
+    public int? PreferredSupplierId { get; set; }
+    public string SupplierPartNumber { get; set; }     // Supplier's product code
+    
+    // ─── MEDIA ────────────────────────────────────────────────────────────────
+    public string ImageUrl { get; set; }               // Primary product image
+    public string ThumbnailUrl { get; set; }
+    
+    // ─── STORAGE ──────────────────────────────────────────────────────────────
+    public string StorageRequirements { get; set; }    // "Cool, dry place"
+    public decimal? MinTemperature { get; set; }       // Celsius
+    public decimal? MaxTemperature { get; set; }       // Celsius
+    public decimal? MaxHumidity { get; set; }          // Percentage
+    
+    // ─── AUDIT ────────────────────────────────────────────────────────────────
+    public DateTime CreatedDate { get; set; }
+    public int CreatedByUserId { get; set; }
+    public DateTime? ModifiedDate { get; set; }
+    public int? ModifiedByUserId { get; set; }
+    public byte[] RowVersion { get; set; }             // Concurrency token
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public Category Category { get; set; }
+    public Brand Brand { get; set; }
+    public UnitOfMeasure PrimaryUOM { get; set; }
+    public UnitOfMeasure SecondaryUOM { get; set; }
+    public Supplier PreferredSupplier { get; set; }
+    public User CreatedBy { get; set; }
+    public User ModifiedBy { get; set; }
+    
+    public ICollection<ProductSupplier> ProductSuppliers { get; set; }
+    public ICollection<StockLevel> StockLevels { get; set; }
+    public ICollection<StockMovement> StockMovements { get; set; }
+    public ICollection<ProductImage> ProductImages { get; set; }
+    public ICollection<Batch> Batches { get; set; }
+}
+
+public enum ProductStatus
+{
+    PendingApproval = 0,
+    Active = 1,
+    Inactive = 2,
+    Discontinued = 3
+}
+
+/// <summary>
+/// Product-Supplier relationship with pricing
+/// </summary>
+public class ProductSupplier
+{
+    public int ProductSupplierId { get; set; }
+    public int ProductId { get; set; }
+    public int SupplierId { get; set; }
+    public string SupplierPartNumber { get; set; }
+    public decimal UnitPrice { get; set; }
+    public string Currency { get; set; }
+    public decimal MinOrderQuantity { get; set; }
+    public int LeadTimeDays { get; set; }
+    public int Priority { get; set; }                  // 1 = Primary, 2 = Secondary, etc.
+    public bool IsActive { get; set; }
+    public DateTime EffectiveFrom { get; set; }
+    public DateTime? EffectiveTo { get; set; }
+    
+    // Navigation
+    public Product Product { get; set; }
+    public Supplier Supplier { get; set; }
+}
+
+/// <summary>
+/// Additional product images
+/// </summary>
+public class ProductImage
+{
+    public int ProductImageId { get; set; }
+    public int ProductId { get; set; }
+    public string ImageUrl { get; set; }
+    public string AltText { get; set; }
+    public int DisplayOrder { get; set; }
+    public bool IsPrimary { get; set; }
+    
+    // Navigation
+    public Product Product { get; set; }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// WAREHOUSE & LOCATION ENTITIES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// <summary>
+/// Warehouse/Distribution Center
+/// </summary>
+public class Warehouse
+{
+    public int WarehouseId { get; set; }
+    public string WarehouseCode { get; set; }          // "WH-NYC-01"
+    public string Name { get; set; }                   // "New York Distribution Center"
+    public WarehouseType Type { get; set; }            // Main, Distribution, Transit, Quarantine
+    public WarehouseStatus Status { get; set; }        // Active, Inactive, Maintenance
+    
+    // ─── ADDRESS ──────────────────────────────────────────────────────────────
+    public string AddressLine1 { get; set; }
+    public string AddressLine2 { get; set; }
+    public string City { get; set; }
+    public string StateProvince { get; set; }
+    public string PostalCode { get; set; }
+    public string Country { get; set; }
+    public decimal? Latitude { get; set; }
+    public decimal? Longitude { get; set; }
+    
+    // ─── CONTACT ──────────────────────────────────────────────────────────────
+    public string ManagerName { get; set; }
+    public string Phone { get; set; }
+    public string Email { get; set; }
+    public string OperatingHours { get; set; }         // "Mon-Fri 8AM-6PM"
+    
+    // ─── CAPACITY ─────────────────────────────────────────────────────────────
+    public decimal TotalAreaSqFt { get; set; }
+    public decimal StorageCapacityCuFt { get; set; }
+    public int TotalPalletPositions { get; set; }
+    public decimal CurrentUtilizationPercent { get; set; }
+    
+    // ─── SETTINGS ─────────────────────────────────────────────────────────────
+    public ValuationMethod DefaultValuationMethod { get; set; }
+    public bool AllowNegativeStock { get; set; }
+    public bool AutoReplenishment { get; set; }
+    public PickingStrategy PickingStrategy { get; set; }
+    
+    // ─── AUDIT ────────────────────────────────────────────────────────────────
+    public DateTime CreatedDate { get; set; }
+    public DateTime? ModifiedDate { get; set; }
+    public bool IsActive { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public ICollection<Zone> Zones { get; set; }
+    public ICollection<StockLevel> StockLevels { get; set; }
+    public ICollection<User> AssignedUsers { get; set; }
+}
+
+public enum WarehouseType
+{
+    Main = 1,
+    Distribution = 2,
+    Transit = 3,
+    Quarantine = 4
+}
+
+public enum WarehouseStatus
+{
+    Active = 1,
+    Inactive = 2,
+    UnderMaintenance = 3
+}
+
+public enum ValuationMethod
+{
+    FIFO = 1,       // First In, First Out
+    LIFO = 2,       // Last In, First Out
+    WeightedAverage = 3,
+    SpecificIdentification = 4
+}
+
+public enum PickingStrategy
+{
+    FIFO = 1,       // First In, First Out
+    LIFO = 2,       // Last In, First Out
+    FEFO = 3        // First Expired, First Out
+}
+
+/// <summary>
+/// Logical zone within a warehouse (Receiving, Storage, Shipping, etc.)
+/// </summary>
+public class Zone
+{
+    public int ZoneId { get; set; }
+    public int WarehouseId { get; set; }
+    public string ZoneCode { get; set; }               // "A", "RECV", "COLD"
+    public string Name { get; set; }                   // "Cold Storage Zone"
+    public ZoneType Type { get; set; }
+    
+    // ─── ENVIRONMENT ──────────────────────────────────────────────────────────
+    public decimal? MinTemperature { get; set; }
+    public decimal? MaxTemperature { get; set; }
+    public decimal? MinHumidity { get; set; }
+    public decimal? MaxHumidity { get; set; }
+    
+    // ─── CAPACITY ─────────────────────────────────────────────────────────────
+    public decimal AreaSqFt { get; set; }
+    public int TotalBins { get; set; }
+    public int AvailableBins { get; set; }
+    
+    // ─── RESTRICTIONS ─────────────────────────────────────────────────────────
+    public string AllowedCategoryIds { get; set; }     // JSON: [1, 2, 3]
+    public string RestrictedProductIds { get; set; }   // JSON: [100, 200]
+    
+    public bool IsActive { get; set; }
+    public int DisplayOrder { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public Warehouse Warehouse { get; set; }
+    public ICollection<Bin> Bins { get; set; }
+}
+
+public enum ZoneType
+{
+    Receiving = 1,
+    Storage = 2,
+    ColdStorage = 3,
+    FrozenStorage = 4,
+    Picking = 5,
+    Packing = 6,
+    Shipping = 7,
+    Quarantine = 8,
+    Returns = 9,
+    Bulk = 10
+}
+
+/// <summary>
+/// Specific bin/location within a zone
+/// Location Code Format: WH-ZONE-AISLE-RACK-LEVEL-BIN
+/// Example: "NYC-A-01-05-03-B"
+/// </summary>
+public class Bin
+{
+    public int BinId { get; set; }
+    public int ZoneId { get; set; }
+    public string BinCode { get; set; }                // Full location code
+    public string Aisle { get; set; }                  // "01"
+    public string Rack { get; set; }                   // "05"
+    public string Level { get; set; }                  // "03"
+    public string Position { get; set; }               // "B"
+    
+    public BinType Type { get; set; }
+    public BinStatus Status { get; set; }
+    
+    // ─── CAPACITY ─────────────────────────────────────────────────────────────
+    public decimal MaxWeight { get; set; }             // KG
+    public decimal MaxVolume { get; set; }             // Cubic CM
+    public int MaxUnits { get; set; }                  // Max items
+    public decimal CurrentWeight { get; set; }
+    public decimal CurrentVolume { get; set; }
+    public int CurrentUnits { get; set; }
+    
+    // ─── RESTRICTIONS ─────────────────────────────────────────────────────────
+    public int? DedicatedProductId { get; set; }       // If bin is for specific product
+    public string AllowedCategoryIds { get; set; }     // JSON
+    
+    public bool IsActive { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public Zone Zone { get; set; }
+    public Product DedicatedProduct { get; set; }
+    public ICollection<StockLevel> StockLevels { get; set; }
+}
+
+public enum BinType
+{
+    Storage = 1,
+    Picking = 2,
+    Bulk = 3,
+    Reserve = 4,
+    Receiving = 5,
+    Shipping = 6,
+    Staging = 7
+}
+
+public enum BinStatus
+{
+    Available = 1,
+    PartiallyFilled = 2,
+    Full = 3,
+    Reserved = 4,
+    Blocked = 5,
+    UnderMaintenance = 6
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SUPPLIER ENTITIES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// <summary>
+/// Supplier/Vendor master data
+/// </summary>
+public class Supplier
+{
+    public int SupplierId { get; set; }
+    public string SupplierCode { get; set; }           // "SUP-001"
+    public string CompanyName { get; set; }
+    public string TradingName { get; set; }
+    public string TaxId { get; set; }                  // VAT/EIN
+    public SupplierType Type { get; set; }
+    public SupplierStatus Status { get; set; }
+    
+    // ─── BILLING ADDRESS ──────────────────────────────────────────────────────
+    public string BillingAddressLine1 { get; set; }
+    public string BillingAddressLine2 { get; set; }
+    public string BillingCity { get; set; }
+    public string BillingStateProvince { get; set; }
+    public string BillingPostalCode { get; set; }
+    public string BillingCountry { get; set; }
+    
+    // ─── SHIPPING ADDRESS ─────────────────────────────────────────────────────
+    public string ShippingAddressLine1 { get; set; }
+    public string ShippingAddressLine2 { get; set; }
+    public string ShippingCity { get; set; }
+    public string ShippingStateProvince { get; set; }
+    public string ShippingPostalCode { get; set; }
+    public string ShippingCountry { get; set; }
+    
+    // ─── PRIMARY CONTACT ──────────────────────────────────────────────────────
+    public string PrimaryContactName { get; set; }
+    public string PrimaryContactEmail { get; set; }
+    public string PrimaryContactPhone { get; set; }
+    public string PrimaryContactPosition { get; set; }
+    
+    // ─── COMMERCIAL TERMS ─────────────────────────────────────────────────────
+    public string PaymentTerms { get; set; }           // "Net 30", "Net 60"
+    public int PaymentTermsDays { get; set; }          // 30, 60
+    public decimal CreditLimit { get; set; }
+    public string Currency { get; set; }               // "USD"
+    public decimal MinOrderValue { get; set; }
+    public string ShippingTerms { get; set; }          // Incoterms: "FOB", "CIF"
+    public int DefaultLeadTimeDays { get; set; }
+    
+    // ─── BANKING ──────────────────────────────────────────────────────────────
+    public string BankName { get; set; }
+    public string BankAccountNumber { get; set; }
+    public string BankRoutingNumber { get; set; }
+    public string BankSwiftCode { get; set; }
+    
+    // ─── PERFORMANCE METRICS ──────────────────────────────────────────────────
+    public decimal OnTimeDeliveryRate { get; set; }    // Percentage
+    public decimal QualityAcceptanceRate { get; set; } // Percentage
+    public decimal AverageLeadTimeDays { get; set; }
+    public int TotalOrders { get; set; }
+    public decimal TotalSpend { get; set; }
+    public int Rating { get; set; }                    // 1-5 stars
+    
+    // ─── AUDIT ────────────────────────────────────────────────────────────────
+    public DateTime CreatedDate { get; set; }
+    public DateTime? ModifiedDate { get; set; }
+    public string Notes { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public ICollection<SupplierContact> Contacts { get; set; }
+    public ICollection<ProductSupplier> ProductSuppliers { get; set; }
+    public ICollection<PurchaseOrder> PurchaseOrders { get; set; }
+}
+
+public enum SupplierType
+{
+    Manufacturer = 1,
+    Distributor = 2,
+    Wholesaler = 3,
+    Retailer = 4,
+    ServiceProvider = 5
+}
+
+public enum SupplierStatus
+{
+    PendingApproval = 0,
+    Active = 1,
+    Inactive = 2,
+    Blocked = 3,
+    OnHold = 4
+}
+
+/// <summary>
+/// Additional supplier contacts
+/// </summary>
+public class SupplierContact
+{
+    public int SupplierContactId { get; set; }
+    public int SupplierId { get; set; }
+    public string Name { get; set; }
+    public string Email { get; set; }
+    public string Phone { get; set; }
+    public string Mobile { get; set; }
+    public string Position { get; set; }
+    public string Department { get; set; }
+    public bool IsPrimary { get; set; }
+    public bool IsActive { get; set; }
+    
+    // Navigation
+    public Supplier Supplier { get; set; }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// INVENTORY & STOCK ENTITIES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// <summary>
+/// Current stock level at a specific location
+/// Granularity: Product + Warehouse + Bin + Batch
+/// </summary>
+public class StockLevel
+{
+    public long StockLevelId { get; set; }
+    public int ProductId { get; set; }
+    public int WarehouseId { get; set; }
+    public int? BinId { get; set; }
+    public int? BatchId { get; set; }
+    
+    // ─── QUANTITIES ───────────────────────────────────────────────────────────
+    public decimal QuantityOnHand { get; set; }        // Physical count
+    public decimal QuantityReserved { get; set; }      // Allocated to orders
+    public decimal QuantityAvailable { get; set; }     // OnHand - Reserved (computed)
+    public decimal QuantityOnOrder { get; set; }       // On open POs
+    public decimal QuantityInTransit { get; set; }     // In transfers
+    public decimal QuantityQuarantine { get; set; }    // Quality hold
+    
+    // ─── COSTING ──────────────────────────────────────────────────────────────
+    public decimal UnitCost { get; set; }              // Current unit cost
+    public decimal TotalValue { get; set; }            // OnHand * UnitCost
+    
+    // ─── STATUS ───────────────────────────────────────────────────────────────
+    public StockStatus Status { get; set; }            // OK, Low, Critical, Out, Over
+    public DateTime LastMovementDate { get; set; }
+    public DateTime? LastCountDate { get; set; }
+    
+    // ─── AUDIT ────────────────────────────────────────────────────────────────
+    public DateTime CreatedDate { get; set; }
+    public DateTime ModifiedDate { get; set; }
+    public byte[] RowVersion { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public Product Product { get; set; }
+    public Warehouse Warehouse { get; set; }
+    public Bin Bin { get; set; }
+    public Batch Batch { get; set; }
+}
+
+public enum StockStatus
+{
+    OutOfStock = 0,
+    Critical = 1,
+    Low = 2,
+    OK = 3,
+    Overstocked = 4
+}
+
+/// <summary>
+/// Immutable record of every inventory change
+/// Core of the audit trail
+/// </summary>
+public class StockMovement
+{
+    public long StockMovementId { get; set; }
+    public string MovementNumber { get; set; }         // "MOV-2024-0000001"
+    public MovementType MovementType { get; set; }
+    public DateTime MovementDate { get; set; }
+    
+    // ─── PRODUCT ──────────────────────────────────────────────────────────────
+    public int ProductId { get; set; }
+    public int? BatchId { get; set; }
+    
+    // ─── LOCATIONS ────────────────────────────────────────────────────────────
+    public int? FromWarehouseId { get; set; }
+    public int? FromBinId { get; set; }
+    public int? ToWarehouseId { get; set; }
+    public int? ToBinId { get; set; }
+    
+    // ─── QUANTITIES ───────────────────────────────────────────────────────────
+    public decimal Quantity { get; set; }
+    public int UOMId { get; set; }
+    public decimal QuantityInBaseUOM { get; set; }
+    
+    // ─── COSTING ──────────────────────────────────────────────────────────────
+    public decimal UnitCost { get; set; }
+    public decimal TotalCost { get; set; }
+    public decimal RunningBalance { get; set; }        // Balance after this movement
+    
+    // ─── REFERENCE ────────────────────────────────────────────────────────────
+    public ReferenceType? ReferenceType { get; set; }  // PO, Transfer, Adjustment, etc.
+    public int? ReferenceId { get; set; }              // ID of source document
+    public string ReferenceNumber { get; set; }        // Document number
+    
+    // ─── REASON ───────────────────────────────────────────────────────────────
+    public int? ReasonCodeId { get; set; }
+    public string Notes { get; set; }
+    
+    // ─── AUDIT ────────────────────────────────────────────────────────────────
+    public int CreatedByUserId { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public MovementStatus Status { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public Product Product { get; set; }
+    public Batch Batch { get; set; }
+    public Warehouse FromWarehouse { get; set; }
+    public Bin FromBin { get; set; }
+    public Warehouse ToWarehouse { get; set; }
+    public Bin ToBin { get; set; }
+    public UnitOfMeasure UOM { get; set; }
+    public ReasonCode ReasonCode { get; set; }
+    public User CreatedBy { get; set; }
+}
+
+public enum MovementType
+{
+    // Inbound
+    PurchaseReceipt = 1,
+    TransferIn = 2,
+    CustomerReturn = 3,
+    PositiveAdjustment = 4,
+    OpeningBalance = 5,
+    ProductionOutput = 6,
+    
+    // Outbound
+    SalesIssue = 10,
+    TransferOut = 11,
+    SupplierReturn = 12,
+    NegativeAdjustment = 13,
+    DamageWriteOff = 14,
+    ExpiryWriteOff = 15,
+    ProductionConsumption = 16,
+    
+    // Internal
+    BinToBinMove = 20,
+    QualityStatusChange = 21,
+    BatchMerge = 22,
+    BatchSplit = 23,
+    CountAdjustment = 24
+}
+
+public enum ReferenceType
+{
+    PurchaseOrder = 1,
+    GoodsReceipt = 2,
+    Transfer = 3,
+    StockAdjustment = 4,
+    StockCount = 5,
+    SalesOrder = 6
+}
+
+public enum MovementStatus
+{
+    Pending = 0,
+    Completed = 1,
+    Reversed = 2,
+    Cancelled = 3
+}
+
+/// <summary>
+/// Reason codes for adjustments and movements
+/// </summary>
+public class ReasonCode
+{
+    public int ReasonCodeId { get; set; }
+    public string Code { get; set; }                   // "DMG", "LOST", "COUNT"
+    public string Name { get; set; }                   // "Damaged Goods"
+    public string Description { get; set; }
+    public ReasonCodeType Type { get; set; }           // Positive, Negative, Both
+    public bool RequiresApproval { get; set; }
+    public bool RequiresNote { get; set; }
+    public bool IsActive { get; set; }
+}
+
+public enum ReasonCodeType
+{
+    Positive = 1,
+    Negative = 2,
+    Both = 3
+}
+
+/// <summary>
+/// Batch/Lot tracking for products requiring traceability
+/// </summary>
+public class Batch
+{
+    public int BatchId { get; set; }
+    public string BatchNumber { get; set; }            // "BATCH-2024-001"
+    public int ProductId { get; set; }
+    
+    // ─── DATES ────────────────────────────────────────────────────────────────
+    public DateTime? ManufactureDate { get; set; }
+    public DateTime? ExpiryDate { get; set; }
+    public DateTime ReceiptDate { get; set; }
+    
+    // ─── SUPPLIER ─────────────────────────────────────────────────────────────
+    public int? SupplierId { get; set; }
+    public string SupplierBatchNumber { get; set; }
+    
+    // ─── QUALITY ──────────────────────────────────────────────────────────────
+    public BatchStatus Status { get; set; }
+    public string CertificateOfAnalysis { get; set; } // URL or reference
+    public DateTime? QualityCheckDate { get; set; }
+    public int? QualityCheckedByUserId { get; set; }
+    
+    // ─── AUDIT ────────────────────────────────────────────────────────────────
+    public string Notes { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public int CreatedByUserId { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public Product Product { get; set; }
+    public Supplier Supplier { get; set; }
+    public User QualityCheckedBy { get; set; }
+    public User CreatedBy { get; set; }
+    public ICollection<StockLevel> StockLevels { get; set; }
+}
+
+public enum BatchStatus
+{
+    Available = 1,
+    OnHold = 2,
+    Quarantine = 3,
+    Expired = 4,
+    Recalled = 5,
+    Consumed = 6
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PURCHASE ORDER ENTITIES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// <summary>
+/// Purchase Order header
+/// </summary>
+public class PurchaseOrder
+{
+    public int PurchaseOrderId { get; set; }
+    public string PONumber { get; set; }               // "PO-2024-0001"
+    public int SupplierId { get; set; }
+    public int WarehouseId { get; set; }               // Receiving warehouse
+    
+    // ─── DATES ────────────────────────────────────────────────────────────────
+    public DateTime OrderDate { get; set; }
+    public DateTime? ExpectedDeliveryDate { get; set; }
+    public DateTime? ActualDeliveryDate { get; set; }
+    
+    // ─── STATUS ───────────────────────────────────────────────────────────────
+    public PurchaseOrderStatus Status { get; set; }
+    public ApprovalStatus ApprovalStatus { get; set; }
+    public PurchaseOrderPriority Priority { get; set; }
+    
+    // ─── COMMERCIAL ───────────────────────────────────────────────────────────
+    public string PaymentTerms { get; set; }
+    public string ShippingTerms { get; set; }
+    public string Currency { get; set; }
+    public decimal ExchangeRate { get; set; }
+    
+    // ─── TOTALS ───────────────────────────────────────────────────────────────
+    public decimal Subtotal { get; set; }
+    public decimal DiscountPercent { get; set; }
+    public decimal DiscountAmount { get; set; }
+    public decimal TaxPercent { get; set; }
+    public decimal TaxAmount { get; set; }
+    public decimal ShippingCost { get; set; }
+    public decimal TotalAmount { get; set; }
+    
+    // ─── ADDRESSES ────────────────────────────────────────────────────────────
+    public string ShipToAddress { get; set; }          // JSON or formatted
+    public string BillToAddress { get; set; }          // JSON or formatted
+    
+    // ─── TRACKING ─────────────────────────────────────────────────────────────
+    public string SupplierReference { get; set; }      // Supplier's quote/ref number
+    public string TrackingNumber { get; set; }
+    public string Carrier { get; set; }
+    
+    // ─── APPROVAL ─────────────────────────────────────────────
+
+    ────────────────
+    public int? ApprovedByUserId { get; set; }
+    public DateTime? ApprovedDate { get; set; }
+    public string ApprovalNotes { get; set; }
+    
+    // ─── AUDIT ────────────────────────────────────────────────────────────────
+    public int CreatedByUserId { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public int? ModifiedByUserId { get; set; }
+    public DateTime? ModifiedDate { get; set; }
+    public string Notes { get; set; }
+    public int RevisionNumber { get; set; }
+    public byte[] RowVersion { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public Supplier Supplier { get; set; }
+    public Warehouse Warehouse { get; set; }
+    public User CreatedBy { get; set; }
+    public User ModifiedBy { get; set; }
+    public User ApprovedBy { get; set; }
+    public ICollection<PurchaseOrderLine> Lines { get; set; }
+    public ICollection<GoodsReceipt> GoodsReceipts { get; set; }
+}
+
+public enum PurchaseOrderStatus
+{
+    Draft = 0,
+    Submitted = 1,
+    Approved = 2,
+    SentToSupplier = 3,
+    Acknowledged = 4,
+    PartiallyReceived = 5,
+    FullyReceived = 6,
+    Closed = 7,
+    Cancelled = 8
+}
+
+public enum ApprovalStatus
+{
+    NotRequired = 0,
+    Pending = 1,
+    Approved = 2,
+    Rejected = 3
+}
+
+public enum PurchaseOrderPriority
+{
+    Low = 0,
+    Normal = 1,
+    High = 2,
+    Urgent = 3,
+    Critical = 4
+}
+
+/// <summary>
+/// Purchase Order line item
+/// </summary>
+public class PurchaseOrderLine
+{
+    public int PurchaseOrderLineId { get; set; }
+    public int PurchaseOrderId { get; set; }
+    public int LineNumber { get; set; }
+    public int ProductId { get; set; }
+    
+    // ─── QUANTITIES ───────────────────────────────────────────────────────────
+    public decimal QuantityOrdered { get; set; }
+    public int UOMId { get; set; }
+    public decimal QuantityReceived { get; set; }
+    public decimal QuantityPending { get; set; }       // Ordered - Received
+    public decimal QuantityRejected { get; set; }
+    
+    // ─── PRICING ──────────────────────────────────────────────────────────────
+    public decimal UnitPrice { get; set; }
+    public decimal DiscountPercent { get; set; }
+    public decimal DiscountAmount { get; set; }
+    public decimal TaxPercent { get; set; }
+    public decimal TaxAmount { get; set; }
+    public decimal LineTotal { get; set; }
+    
+    // ─── DETAILS ──────────────────────────────────────────────────────────────
+    public string Description { get; set; }            // Override product name
+    public string SupplierPartNumber { get; set; }
+    public DateTime? ExpectedDate { get; set; }        // Line-level expected date
+    public string Notes { get; set; }
+    
+    // ─── STATUS ───────────────────────────────────────────────────────────────
+    public PurchaseOrderLineStatus Status { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public PurchaseOrder PurchaseOrder { get; set; }
+    public Product Product { get; set; }
+    public UnitOfMeasure UOM { get; set; }
+}
+
+public enum PurchaseOrderLineStatus
+{
+    Open = 0,
+    PartiallyReceived = 1,
+    FullyReceived = 2,
+    Cancelled = 3
+}
+
+/// <summary>
+/// Goods Receipt Note (GRN) - records receipt of PO items
+/// </summary>
+public class GoodsReceipt
+{
+    public int GoodsReceiptId { get; set; }
+    public string GRNNumber { get; set; }              // "GRN-2024-0001"
+    public int PurchaseOrderId { get; set; }
+    public int WarehouseId { get; set; }
+    
+    // ─── DETAILS ──────────────────────────────────────────────────────────────
+    public DateTime ReceiptDate { get; set; }
+    public string SupplierDeliveryNote { get; set; }   // Supplier's delivery note number
+    public string Carrier { get; set; }
+    public string TrackingNumber { get; set; }
+    
+    // ─── STATUS ───────────────────────────────────────────────────────────────
+    public GoodsReceiptStatus Status { get; set; }
+    
+    // ─── AUDIT ────────────────────────────────────────────────────────────────
+    public int ReceivedByUserId { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public DateTime? PostedDate { get; set; }
+    public string Notes { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public PurchaseOrder PurchaseOrder { get; set; }
+    public Warehouse Warehouse { get; set; }
+    public User ReceivedBy { get; set; }
+    public ICollection<GoodsReceiptLine> Lines { get; set; }
+}
+
+public enum GoodsReceiptStatus
+{
+    Draft = 0,
+    Posted = 1,
+    Cancelled = 2
+}
+
+/// <summary>
+/// Goods Receipt line item
+/// </summary>
+public class GoodsReceiptLine
+{
+    public int GoodsReceiptLineId { get; set; }
+    public int GoodsReceiptId { get; set; }
+    public int PurchaseOrderLineId { get; set; }
+    public int ProductId { get; set; }
+    
+    // ─── QUANTITIES ───────────────────────────────────────────────────────────
+    public decimal QuantityOrdered { get; set; }
+    public decimal QuantityReceived { get; set; }
+    public decimal QuantityRejected { get; set; }
+    public decimal QuantityAccepted { get; set; }      // Received - Rejected
+    public int UOMId { get; set; }
+    
+    // ─── LOCATION ─────────────────────────────────────────────────────────────
+    public int? BinId { get; set; }
+    
+    // ─── BATCH ────────────────────────────────────────────────────────────────
+    public int? BatchId { get; set; }
+    public string BatchNumber { get; set; }            // For new batch creation
+    public DateTime? ManufactureDate { get; set; }
+    public DateTime? ExpiryDate { get; set; }
+    
+    // ─── COSTING ──────────────────────────────────────────────────────────────
+    public decimal UnitCost { get; set; }
+    public decimal TotalCost { get; set; }
+    
+    // ─── QUALITY ──────────────────────────────────────────────────────────────
+    public InspectionStatus InspectionStatus { get; set; }
+    public string InspectionNotes { get; set; }
+    public string RejectionReason { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public GoodsReceipt GoodsReceipt { get; set; }
+    public PurchaseOrderLine PurchaseOrderLine { get; set; }
+    public Product Product { get; set; }
+    public Bin Bin { get; set; }
+    public Batch Batch { get; set; }
+    public UnitOfMeasure UOM { get; set; }
+}
+
+public enum InspectionStatus
+{
+    NotRequired = 0,
+    Pending = 1,
+    Passed = 2,
+    Failed = 3,
+    PartialPass = 4
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TRANSFER ENTITIES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// <summary>
+/// Stock Transfer between warehouses or locations
+/// </summary>
+public class Transfer
+{
+    public int TransferId { get; set; }
+    public string TransferNumber { get; set; }         // "TRF-2024-0001"
+    public TransferType Type { get; set; }
+    
+    // ─── LOCATIONS ────────────────────────────────────────────────────────────
+    public int FromWarehouseId { get; set; }
+    public int ToWarehouseId { get; set; }
+    
+    // ─── DATES ────────────────────────────────────────────────────────────────
+    public DateTime RequestedDate { get; set; }
+    public DateTime? RequiredDate { get; set; }
+    public DateTime? ShippedDate { get; set; }
+    public DateTime? ReceivedDate { get; set; }
+    public DateTime? CompletedDate { get; set; }
+    
+    // ─── STATUS ───────────────────────────────────────────────────────────────
+    public TransferStatus Status { get; set; }
+    public TransferPriority Priority { get; set; }
+    
+    // ─── SHIPPING ─────────────────────────────────────────────────────────────
+    public string Carrier { get; set; }
+    public string TrackingNumber { get; set; }
+    public decimal? ShippingCost { get; set; }
+    
+    // ─── APPROVAL ─────────────────────────────────────────────────────────────
+    public bool RequiresApproval { get; set; }
+    public ApprovalStatus ApprovalStatus { get; set; }
+    public int? ApprovedByUserId { get; set; }
+    public DateTime? ApprovedDate { get; set; }
+    
+    // ─── AUDIT ────────────────────────────────────────────────────────────────
+    public int RequestedByUserId { get; set; }
+    public int? ShippedByUserId { get; set; }
+    public int? ReceivedByUserId { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public DateTime? ModifiedDate { get; set; }
+    public string Notes { get; set; }
+    public byte[] RowVersion { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public Warehouse FromWarehouse { get; set; }
+    public Warehouse ToWarehouse { get; set; }
+    public User RequestedBy { get; set; }
+    public User ApprovedBy { get; set; }
+    public User ShippedBy { get; set; }
+    public User ReceivedBy { get; set; }
+    public ICollection<TransferLine> Lines { get; set; }
+}
+
+public enum TransferType
+{
+    InterWarehouse = 1,
+    InterZone = 2,
+    BinToBin = 3
+}
+
+public enum TransferStatus
+{
+    Draft = 0,
+    Submitted = 1,
+    Approved = 2,
+    Rejected = 3,
+    Shipped = 4,
+    InTransit = 5,
+    PartiallyReceived = 6,
+    Received = 7,
+    Completed = 8,
+    Cancelled = 9
+}
+
+public enum TransferPriority
+{
+    Low = 0,
+    Normal = 1,
+    High = 2,
+    Urgent = 3
+}
+
+/// <summary>
+/// Transfer line item
+/// </summary>
+public class TransferLine
+{
+    public int TransferLineId { get; set; }
+    public int TransferId { get; set; }
+    public int LineNumber { get; set; }
+    public int ProductId { get; set; }
+    
+    // ─── LOCATIONS ────────────────────────────────────────────────────────────
+    public int? FromBinId { get; set; }
+    public int? ToBinId { get; set; }
+    
+    // ─── BATCH ────────────────────────────────────────────────────────────────
+    public int? BatchId { get; set; }
+    
+    // ─── QUANTITIES ───────────────────────────────────────────────────────────
+    public decimal RequestedQty { get; set; }
+    public decimal ApprovedQty { get; set; }
+    public decimal ShippedQty { get; set; }
+    public decimal ReceivedQty { get; set; }
+    public decimal VarianceQty { get; set; }           // Shipped - Received
+    public int UOMId { get; set; }
+    
+    // ─── COSTING ──────────────────────────────────────────────────────────────
+    public decimal UnitCost { get; set; }
+    public decimal TotalCost { get; set; }
+    
+    // ─── STATUS ───────────────────────────────────────────────────────────────
+    public TransferLineStatus Status { get; set; }
+    public string Notes { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public Transfer Transfer { get; set; }
+    public Product Product { get; set; }
+    public Bin FromBin { get; set; }
+    public Bin ToBin { get; set; }
+    public Batch Batch { get; set; }
+    public UnitOfMeasure UOM { get; set; }
+}
+
+public enum TransferLineStatus
+{
+    Pending = 0,
+    PartiallyShipped = 1,
+    Shipped = 2,
+    PartiallyReceived = 3,
+    Received = 4,
+    Cancelled = 5
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADJUSTMENT & COUNT ENTITIES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// <summary>
+/// Stock Adjustment document
+/// </summary>
+public class StockAdjustment
+{
+    public int StockAdjustmentId { get; set; }
+    public string AdjustmentNumber { get; set; }       // "ADJ-2024-0001"
+    public int WarehouseId { get; set; }
+    public AdjustmentType Type { get; set; }
+    
+    // ─── DETAILS ──────────────────────────────────────────────────────────────
+    public DateTime AdjustmentDate { get; set; }
+    public int ReasonCodeId { get; set; }
+    public string Reference { get; set; }              // External reference
+    
+    // ─── STATUS ───────────────────────────────────────────────────────────────
+    public AdjustmentStatus Status { get; set; }
+    
+    // ─── TOTALS ───────────────────────────────────────────────────────────────
+    public decimal TotalValueImpact { get; set; }
+    public int TotalLines { get; set; }
+    public int TotalPositiveLines { get; set; }
+    public int TotalNegativeLines { get; set; }
+    
+    // ─── APPROVAL ─────────────────────────────────────────────────────────────
+    public bool RequiresApproval { get; set; }
+    public ApprovalStatus ApprovalStatus { get; set; }
+    public int? ApprovedByUserId { get; set; }
+    public DateTime? ApprovedDate { get; set; }
+    public string ApprovalNotes { get; set; }
+    
+    // ─── AUDIT ────────────────────────────────────────────────────────────────
+    public int CreatedByUserId { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public DateTime? PostedDate { get; set; }
+    public string Notes { get; set; }
+    public string Attachments { get; set; }            // JSON array of URLs
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public Warehouse Warehouse { get; set; }
+    public ReasonCode ReasonCode { get; set; }
+    public User CreatedBy { get; set; }
+    public User ApprovedBy { get; set; }
+    public ICollection<StockAdjustmentLine> Lines { get; set; }
+}
+
+public enum AdjustmentType
+{
+    Positive = 1,
+    Negative = 2,
+    Mixed = 3
+}
+
+public enum AdjustmentStatus
+{
+    Draft = 0,
+    PendingApproval = 1,
+    Approved = 2,
+    Rejected = 3,
+    Posted = 4,
+    Cancelled = 5
+}
+
+/// <summary>
+/// Stock Adjustment line item
+/// </summary>
+public class StockAdjustmentLine
+{
+    public int StockAdjustmentLineId { get; set; }
+    public int StockAdjustmentId { get; set; }
+    public int LineNumber { get; set; }
+    public int ProductId { get; set; }
+    
+    // ─── LOCATION ─────────────────────────────────────────────────────────────
+    public int? BinId { get; set; }
+    public int? BatchId { get; set; }
+    
+    // ─── QUANTITIES ───────────────────────────────────────────────────────────
+    public decimal QuantityBefore { get; set; }
+    public decimal QuantityAfter { get; set; }
+    public decimal Variance { get; set; }              // After - Before
+    public int UOMId { get; set; }
+    
+    // ─── COSTING ──────────────────────────────────────────────────────────────
+    public decimal UnitCost { get; set; }
+    public decimal ValueImpact { get; set; }           // Variance * UnitCost
+    
+    // ─── DETAILS ──────────────────────────────────────────────────────────────
+    public int? ReasonCodeId { get; set; }             // Line-level override
+    public string Notes { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public StockAdjustment StockAdjustment { get; set; }
+    public Product Product { get; set; }
+    public Bin Bin { get; set; }
+    public Batch Batch { get; set; }
+    public UnitOfMeasure UOM { get; set; }
+    public ReasonCode ReasonCode { get; set; }
+}
+
+/// <summary>
+/// Stock Count / Physical Inventory document
+/// </summary>
+public class StockCount
+{
+    public int StockCountId { get; set; }
+    public string CountNumber { get; set; }            // "CNT-2024-0001"
+    public int WarehouseId { get; set; }
+    public StockCountType Type { get; set; }
+    
+    // ─── SCOPE ────────────────────────────────────────────────────────────────
+    public string ZoneIds { get; set; }                // JSON: [1, 2, 3] or null for all
+    public string BinIds { get; set; }                 // JSON: [1, 2, 3] or null for all
+    public string CategoryIds { get; set; }            // JSON: [1, 2, 3] or null for all
+    public string ProductIds { get; set; }             // JSON: [1, 2, 3] or null for all
+    public string ABCClasses { get; set; }             // JSON: ["A", "B"] or null for all
+    
+    // ─── DATES ────────────────────────────────────────────────────────────────
+    public DateTime ScheduledDate { get; set; }
+    public DateTime? StartedDate { get; set; }
+    public DateTime? CompletedDate { get; set; }
+    public DateTime? PostedDate { get; set; }
+    
+    // ─── STATUS ───────────────────────────────────────────────────────────────
+    public StockCountStatus Status { get; set; }
+    
+    // ─── OPTIONS ──────────────────────────────────────────────────────────────
+    public bool BlindCount { get; set; }               // Hide expected qty from counters
+    public bool RequireRecount { get; set; }           // Auto-recount on variance
+    public decimal RecountThresholdPercent { get; set; } // Variance % triggering recount
+    
+    // ─── SUMMARY ──────────────────────────────────────────────────────────────
+    public int TotalLines { get; set; }
+    public int LinesCointed { get; set; }
+    public int LinesWithVariance { get; set; }
+    public decimal TotalVarianceValue { get; set; }
+    
+    // ─── AUDIT ────────────────────────────────────────────────────────────────
+    public int CreatedByUserId { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public string AssignedUserIds { get; set; }        // JSON: [1, 2, 3]
+    public string Notes { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public Warehouse Warehouse { get; set; }
+    public User CreatedBy { get; set; }
+    public ICollection<StockCountLine> Lines { get; set; }
+}
+
+public enum StockCountType
+{
+    Full = 1,
+    Cycle = 2,
+    Spot = 3,
+    ABC = 4
+}
+
+public enum StockCountStatus
+{
+    Scheduled = 0,
+    InProgress = 1,
+    PendingReview = 2,
+    Approved = 3,
+    Posted = 4,
+    Cancelled = 5
+}
+
+/// <summary>
+/// Stock Count line item
+/// </summary>
+public class StockCountLine
+{
+    public int StockCountLineId { get; set; }
+    public int StockCountId { get; set; }
+    public int LineNumber { get; set; }
+    public int ProductId { get; set; }
+    
+    // ─── LOCATION ─────────────────────────────────────────────────────────────
+    public int? BinId { get; set; }
+    public int? BatchId { get; set; }
+    
+    // ─── QUANTITIES ───────────────────────────────────────────────────────────
+    public decimal SystemQty { get; set; }             // Expected (frozen at start)
+    public decimal? CountQty1 { get; set; }            // First count
+    public decimal? CountQty2 { get; set; }            // Verification count
+    public decimal? FinalCountQty { get; set; }        // Accepted count
+    public decimal Variance { get; set; }              // Final - System
+    public decimal VariancePercent { get; set; }
+    public int UOMId { get; set; }
+    
+    // ─── COSTING ──────────────────────────────────────────────────────────────
+    public decimal UnitCost { get; set; }
+    public decimal VarianceValue { get; set; }
+    
+    // ─── STATUS ───────────────────────────────────────────────────────────────
+    public StockCountLineStatus Status { get; set; }
+    public bool RecountRequired { get; set; }
+    
+    // ─── COUNTERS ─────────────────────────────────────────────────────────────
+    public int? CountedBy1UserId { get; set; }
+    public DateTime? CountedDate1 { get; set; }
+    public int? CountedBy2UserId { get; set; }
+    public DateTime? CountedDate2 { get; set; }
+    
+    public string Notes { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public StockCount StockCount { get; set; }
+    public Product Product { get; set; }
+    public Bin Bin { get; set; }
+    public Batch Batch { get; set; }
+    public UnitOfMeasure UOM { get; set; }
+    public User CountedBy1 { get; set; }
+    public User CountedBy2 { get; set; }
+}
+
+public enum StockCountLineStatus
+{
+    Pending = 0,
+    Counted = 1,
+    Recounting = 2,
+    Verified = 3,
+    Approved = 4,
+    Adjusted = 5
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// USER & SECURITY ENTITIES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// <summary>
+/// System user
+/// </summary>
+public class User
+{
+    public int UserId { get; set; }
+    public string Username { get; set; }
+    public string Email { get; set; }
+    public string PasswordHash { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public string FullName => $"{FirstName} {LastName}";
+    public string Phone { get; set; }
+    public string AvatarUrl { get; set; }
+    
+    // ─── ROLE & ACCESS ────────────────────────────────────────────────────────
+    public int RoleId { get; set; }
+    public int? DefaultWarehouseId { get; set; }
+    public string AllowedWarehouseIds { get; set; }    // JSON: [1, 2, 3]
+    
+    // ─── STATUS ───────────────────────────────────────────────────────────────
+    public bool IsActive { get; set; }
+    public bool IsLocked { get; set; }
+    public int FailedLoginAttempts { get; set; }
+    public DateTime? LockoutEnd { get; set; }
+    
+    // ─── PREFERENCES ──────────────────────────────────────────────────────────
+    public string Preferences { get; set; }            // JSON: theme, language, etc.
+    
+    // ─── AUDIT ────────────────────────────────────────────────────────────────
+    public DateTime CreatedDate { get; set; }
+    public DateTime? LastLoginDate { get; set; }
+    public DateTime? ModifiedDate { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public Role Role { get; set; }
+    public Warehouse DefaultWarehouse { get; set; }
+}
+
+/// <summary>
+/// User role with permissions
+/// </summary>
+public class Role
+{
+    public int RoleId { get; set; }
+    public string RoleName { get; set; }
+    public string Description { get; set; }
+    public string Permissions { get; set; }            // JSON permissions object
+    public bool IsSystem { get; set; }                 // Cannot be deleted
+    public bool IsActive { get; set; }
+    public DateTime CreatedDate { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public ICollection<User> Users { get; set; }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ALERT & AUDIT ENTITIES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// <summary>
+/// System alert/notification
+/// </summary>
+public class Alert
+{
+    public long AlertId { get; set; }
+    public AlertType Type { get; set; }
+    public AlertSeverity Severity { get; set; }
+    
+    // ─── CONTEXT ──────────────────────────────────────────────────────────────
+    public int? ProductId { get; set; }
+    public int? WarehouseId { get; set; }
+    public int? SupplierId { get; set; }
+    public string EntityType { get; set; }
+    public int? EntityId { get; set; }
+    
+    // ─── CONTENT ──────────────────────────────────────────────────────────────
+    public string Title { get; set; }
+    public string Message { get; set; }
+    public string ActionUrl { get; set; }
+    public string Data { get; set; }                   // JSON additional data
+    
+    // ─── STATUS ───────────────────────────────────────────────────────────────
+    public bool IsRead { get; set; }
+    public bool IsDismissed { get; set; }
+    public bool IsSnoozed { get; set; }
+    public DateTime? SnoozeUntil { get; set; }
+    
+    // ─── TIMESTAMPS ───────────────────────────────────────────────────────────
+    public DateTime CreatedDate { get; set; }
+    public DateTime? ReadDate { get; set; }
+    public DateTime? DismissedDate { get; set; }
+    public int? ReadByUserId { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public Product Product { get; set; }
+    public Warehouse Warehouse { get; set; }
+    public Supplier Supplier { get; set; }
+    public User ReadBy { get; set; }
+}
+
+public enum AlertType
+{
+    LowStock = 1,
+    OutOfStock = 2,
+    OverStock = 3,
+    ExpiryWarning = 4,
+    Expired = 5,
+    POOverdue = 6,
+    POReceived = 7,
+    TransferCompleted = 8,
+    AdjustmentPending = 9,
+    CountDue = 10,
+    SystemError = 99
+}
+
+public enum AlertSeverity
+{
+    Info = 0,
+    Warning = 1,
+    Critical = 2
+}
+
+/// <summary>
+/// Audit log for all changes
+/// </summary>
+public class AuditLog
+{
+    public long AuditLogId { get; set; }
+    
+    // ─── ENTITY ───────────────────────────────────────────────────────────────
+    public string EntityType { get; set; }             // "Product", "PurchaseOrder", etc.
+    public int EntityId { get; set; }
+    public string EntityReference { get; set; }        // Human-readable ref (SKU, PO#)
+    
+    // ─── ACTION ───────────────────────────────────────────────────────────────
+    public AuditAction Action { get; set; }
+    public string ActionDescription { get; set; }
+    
+    // ─── CHANGES ──────────────────────────────────────────────────────────────
+    public string OldValues { get; set; }              // JSON: { field: oldValue }
+    public string NewValues { get; set; }              // JSON: { field: newValue }
+    public string ChangedFields { get; set; }          // JSON: ["field1", "field2"]
+    
+    // ─── CONTEXT ──────────────────────────────────────────────────────────────
+    public int UserId { get; set; }
+    public string Username { get; set; }
+    public DateTime Timestamp { get; set; }
+    public string IpAddress { get; set; }
+    public string UserAgent { get; set; }
+    
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    public User User { get; set; }
+}
+
+public enum AuditAction
+{
+    Create = 1,
+    Update = 2,
+    Delete = 3,
+    SoftDelete = 4,
+    Restore = 5,
+    View = 6,
+    Export = 7,
+    Import = 8,
+    Approve = 9,
+    Reject = 10,
+    Submit = 11,
+    Cancel = 12,
+    Post = 13,
+    Login = 20,
+    Logout = 21,
+    FailedLogin = 22
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SETTINGS ENTITIES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// <summary>
+/// System settings key-value store
+/// </summary>
+public class SystemSetting
+{
+    public int SystemSettingId { get; set; }
+    public string Category { get; set; }               // "Company", "Inventory", "Numbering"
+    public string Key { get; set; }
+    public string Value { get; set; }
+    public string DataType { get; set; }               // "string", "int", "bool", "json"
+    public string Description { get; set; }
+    public bool IsEditable { get; set; }
+    public DateTime ModifiedDate { get; set; }
+    public int? ModifiedByUserId { get; set; }
+}
+
+/// <summary>
+/// Number series for auto-numbering
+/// </summary>
+public class NumberSeries
+{
+    public int NumberSeriesId { get; set; }
+    public string EntityType { get; set; }             // "PurchaseOrder", "Transfer", etc.
+    public string Prefix { get; set; }                 // "PO-"
+    public string DateFormat { get; set; }             // "yyyy-" or null
+    public int CurrentNumber { get; set; }
+    public int NumberPadding { get; set; }             // 5 → "00001"
+    public string Suffix { get; set; }
+    public DateTime? ResetDate { get; set; }           // When to reset
+    public string ResetFrequency { get; set; }         // "Yearly", "Monthly", "Never"
+    
+    // Example: "PO-2024-00001"
+}
+```
+
+---
+
+## 3.3 Seed Data Specification
+
+```yaml
+Seed Data Volume:
+  Products: 1,000
+  Categories: 50 (5 root, 45 children)
+  Brands: 30
+  Suppliers: 50
+  Warehouses: 5
+  Zones: 25 (5 per warehouse)
+  Bins: 500 (100 per warehouse)
+  Users: 25
+  
+  Stock Levels: ~5,000 (products × warehouses with variation)
+  Stock Movements: ~50,000 (2 years history)
+  Purchase Orders: 500 (2 years)
+  PO Lines: ~2,500
+  Goods Receipts: 450
+  Transfers: 300
+  Adjustments: 200
+  Stock Counts: 50
+  Batches: 500 (for tracked products)
+  Alerts: 100 (active)
+  Audit Logs: ~100,000
+
+Data Characteristics:
+  - Realistic company/product names
+  - Proper address data (US cities)
+  - Realistic pricing (industry appropriate)
+  - Historical data spanning 2 years
+  - Seasonal patterns in movements
+  - 10% products out of stock
+  - 15% products low stock
+  - 5% products overstocked
+  - Mix of batch-tracked and non-tracked
+  - Some expired batches
+  - Some overdue POs
+  - Varied supplier performance
+
+Categories (Root):
+  1. Electronics
+  2. Office Supplies
+  3. Industrial Equipment
+  4. Food & Beverage
+  5. Medical Supplies
+
+Sample Products per Category:
+  Electronics:
+    - Laptops, Tablets, Phones, Monitors
+    - Cables, Chargers, Accessories
+    - Printers, Scanners, Projectors
+  
+  Office Supplies:
+    - Paper, Notebooks, Binders
+    - Pens, Pencils, Markers
+    - Desk Accessories, Organizers
+  
+  Industrial Equipment:
+    - Power Tools, Hand Tools
+    - Safety Equipment
+    - Machinery Parts
+  
+  Food & Beverage:
+    - Snacks, Beverages
+    - Coffee, Tea
+    - Break Room Supplies
+  
+  Medical Supplies:
+    - First Aid Kits
+    - PPE, Masks, Gloves
+    - Sanitizers, Disinfectants
+
+Warehouses:
+  1. New York Distribution Center (Main)
+  2. Los Angeles Fulfillment Center
+  3. Chicago Regional Hub
+  4. Dallas Distribution Center
+  5. Atlanta Logistics Center
+```
+
+---
+
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║                    SECTION 4: PROJECT STRUCTURE                               ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+## 4.1 Solution Structure
+
+```
+StockFlowPro/
+│
+├── 📁 src/
+│   │
+│   ├── 📁 StockFlowPro.API/                    # ASP.NET Core Web API
+│   │   ├── 📁 Controllers/
+│   │   │   ├── ProductsController.cs
+│   │   │   ├── CategoriesController.cs
+│   │   │   ├── InventoryController.cs
+│   │   │   ├── PurchaseOrdersController.cs
+│   │   │   ├── SuppliersController.cs
+│   │   │   ├── WarehousesController.cs
+│   │   │   ├── TransfersController.cs
+│   │   │   ├── AdjustmentsController.cs
+│   │   │   ├── StockCountsController.cs
+│   │   │   ├── ReportsController.cs
+│   │   │   ├── AlertsController.cs
+│   │   │   ├── UsersController.cs
+│   │   │   ├── AuthController.cs
+│   │   │   └── SettingsController.cs
+│   │   │
+│   │   ├── 📁 Middleware/
+│   │   │   ├── ExceptionHandlingMiddleware.cs
+│   │   │   ├── RequestLoggingMiddleware.cs
+│   │   │   └── PerformanceMonitorMiddleware.cs
+│   │   │
+│   │   ├── 📁 Filters/
+│   │   │   ├── ValidationFilter.cs
+│   │   │   └── AuditActionFilter.cs
+│   │   │
+│   │   ├── 📁 Extensions/
+│   │   │   ├── ServiceCollectionExtensions.cs
+│   │   │   └── ApplicationBuilderExtensions.cs
+│   │   │
+│   │   ├── Program.cs
+│   │   ├── appsettings.json
+│   │   └── StockFlowPro.API.csproj
+│   │
+│   ├── 📁 StockFlowPro.Application/            # Application/Service Layer
+│   │   ├── 📁 Common/
+│   │   │   ├── 📁 Behaviors/
+│   │   │   │   ├── ValidationBehavior.cs
+│   │   │   │   └── LoggingBehavior.cs
+│   │   │   ├── 📁 Exceptions/
+│   │   │   │   ├── NotFoundException.cs
+│   │   │   │   ├── ValidationException.cs
+│   │   │   │   ├── BusinessRuleException.cs
+│   │   │   │   └── ConcurrencyException.cs
+│   │   │   ├── 📁 Interfaces/
+│   │   │   │   ├── ICurrentUserService.cs
+│   │   │   │   └── IDateTimeService.cs
+│   │   │   └── 📁 Mappings/
+│   │   │       └── MappingProfile.cs
+│   │   │
+│   │   ├── 📁 DTOs/
+│   │   │   ├── 📁 Products/
+│   │   │   │   ├── ProductDto.cs
+│   │   │   │   ├── ProductListDto.cs
+│   │   │   │   ├── CreateProductDto.cs
+│   │   │   │   ├── UpdateProductDto.cs
+│   │   │   │   └── ProductFilterDto.cs
+│   │   │   ├── 📁 Inventory/
+│   │   │   │   ├── StockLevelDto.cs
+│   │   │   │   ├── StockMovementDto.cs
+│   │   │   │   └── ...
+│   │   │   ├── 📁 PurchaseOrders/
+│   │   │   ├── 📁 Suppliers/
+│   │   │   ├── 📁 Warehouses/
+│   │   │   ├── 📁 Transfers/
+│   │   │   ├── 📁 Reports/
+│   │   │   └── 📁 Common/
+│   │   │       ├── PaginatedResponseDto.cs
+│   │   │       ├── ApiResponseDto.cs
+│   │   │       └── LookupDto.cs
+│   │   │
+│   │   ├── 📁 Services/
+│   │   │   ├── 📁 Interfaces/
+│   │   │   │   ├── IProductService.cs
+│   │   │   │   ├── IInventoryService.cs
+│   │   │   │   ├── IPurchaseOrderService.cs
+│   │   │   │   ├── ISupplierService.cs
+│   │   │   │   ├── IWarehouseService.cs
+│   │   │   │   ├── ITransferService.cs
+│   │   │   │   ├── IAdjustmentService.cs
+│   │   │   │   ├── IStockCountService.cs
+│   │   │   │   ├── IReportService.cs
+│   │   │   │   ├── IAlertService.cs
+│   │   │   │   └── IExportService.cs
+│   │   │   │
+│   │   │   └── 📁 Implementations/
+│   │   │       ├── ProductService.cs
+│   │   │       ├── InventoryService.cs
+│   │   │       ├── PurchaseOrderService.cs
+│   │   │       ├── SupplierService.cs
+│   │   │       ├── WarehouseService.cs
+│   │   │       ├── TransferService.cs
+│   │   │       ├── AdjustmentService.cs
+│   │   │       ├── StockCountService.cs
+│   │   │       ├── ReportService.cs
+│   │   │       ├── AlertService.cs
+│   │   │       └── ExportService.cs
+│   │   │
+│   │   ├── 📁 Validators/
+│   │   │   ├── CreateProductValidator.cs
+│   │   │   ├── UpdateProductValidator.cs
+│   │   │   ├── CreatePurchaseOrderValidator.cs
+│   │   │   └── ...
+│   │   │
+│   │   └── StockFlowPro.Application.csproj
+│   │
+│   ├── 📁 StockFlowPro.Domain/                 # Domain/Core Layer
+│   │   ├── 📁 Entities/
+│   │   │   ├── Product.cs
+│   │   │   ├── Category.cs
+│   │   │   ├── Brand.cs
+│   │   │   ├── UnitOfMeasure.cs
+│   │   │   ├── Supplier.cs
+│   │   │   ├── Warehouse.cs
+│   │   │   ├── Zone.cs
+│   │   │   ├── Bin.cs
+│   │   │   ├── StockLevel.cs
+│   │   │   ├── StockMovement.cs
+│   │   │   ├── Batch.cs
+│   │   │   ├── PurchaseOrder.cs
+│   │   │   ├── PurchaseOrderLine.cs
+│   │   │   ├── GoodsReceipt.cs
+│   │   │   ├── GoodsReceiptLine.cs
+│   │   │   ├── Transfer.cs
+│   │   │   ├── TransferLine.cs
+│   │   │   ├── StockAdjustment.cs
+│   │   │   ├── StockAdjustmentLine.cs
+│   │   │   ├── StockCount.cs
+│   │   │   ├── StockCountLine.cs
+│   │   │   ├── User.cs
+│   │   │   ├── Role.cs
+│   │   │   ├── Alert.cs
+│   │   │   ├── AuditLog.cs
+│   │   │   └── SystemSetting.cs
+│   │   │
+│   │   ├── 📁 Enums/
+│   │   │   ├── ProductStatus.cs
+│   │   │   ├── MovementType.cs
+│   │   │   ├── PurchaseOrderStatus.cs
+│   │   │   ├── TransferStatus.cs
+│   │   │   └── ...
+│   │   │
+│   │   ├── 📁 ValueObjects/
+│   │   │   ├── Address.cs
+│   │   │   ├── Money.cs
+│   │   │   └── DateRange.cs
+│   │   │
+│   │   ├── 📁 DomainServices/
+│   │   │   ├── StockMovementEngine.cs
+│   │   │   ├── ValuationEngine.cs
+│   │   │   ├── ReorderCalculator.cs
+│   │   │   ├── BarcodeGenerator.cs
+│   │   │   └── ABCClassifier.cs
+│   │   │
+│   │   ├── 📁 Events/
+│   │   │   ├── StockBelowReorderPointEvent.cs
+│   │   │   ├── PurchaseOrderReceivedEvent.cs
+│   │   │   └── ...
+│   │   │
+│   │   └── StockFlowPro.Domain.csproj
+│   │
+│   ├── 📁 StockFlowPro.Infrastructure/         # Infrastructure Layer
+│   │   ├── 📁 Data/
+│   │   │   ├── StockFlowDbContext.cs
+│   │   │   ├── 📁 Configurations/
+│   │   │   │   ├── ProductConfiguration.cs
+│   │   │   │   ├── CategoryConfiguration.cs
+│   │   │   │   ├── SupplierConfiguration.cs
+│   │   │   │   └── ... (one per entity)
+│   │   │   ├── 📁 Migrations/
+│   │   │   └── 📁 Seed/
+│   │   │       ├── SeedData.cs
+│   │   │       ├── ProductSeeder.cs
+│   │   │       ├── SupplierSeeder.cs
+│   │   │       └── ...
+│   │   │
+│   │   ├── 📁 Repositories/
+│   │   │   ├── 📁 Interfaces/
+│   │   │   │   ├── IGenericRepository.cs
+│   │   │   │   ├── IProductRepository.cs
+│   │   │   │   ├── IInventoryRepository.cs
+│   │   │   │   └── ...
+│   │   │   └── 📁 Implementations/
+│   │   │       ├── GenericRepository.cs
+│   │   │       ├── ProductRepository.cs
+│   │   │       ├── InventoryRepository.cs
+│   │   │       └── ...
+│   │   │
+│   │   ├── 📁 Services/
+│   │   │   ├── CurrentUserService.cs
+│   │   │   ├── DateTimeService.cs
+│   │   │   └── JwtService.cs
+│   │   │
+│   │   └── StockFlowPro.Infrastructure.csproj
+│   │
+│   └── 📁 StockFlowPro.Web/                    # Angular Frontend
+│       ├── 📁 src/
+│       │   ├── 📁 app/
+│       │   │   ├── 📁 core/
+│       │   │   │   ├── 📁 auth/
+│       │   │   │   ├── 📁 guards/
+│       │   │   │   ├── 📁 interceptors/
+│       │   │   │   ├── 📁 services/
+│       │   │   │   └── 📁 state/
+│       │   │   │
+│       │   │   ├── 📁 shared/
+│       │   │   │   ├── 📁 components/
+│       │   │   │   ├── 📁 directives/
+│       │   │   │   ├── 📁 pipes/
+│       │   │   │   └── 📁 utils/
+│       │   │   │
+│       │   │   ├── 📁 features/
+│       │   │   │   ├── 📁 dashboard/
+│       │   │   │   ├── 📁 products/
+│       │   │   │   ├── 📁 inventory/
+│       │   │   │   ├── 📁 purchase-orders/
+│       │   │   │   ├── 📁 suppliers/
+│       │   │   │   ├── 📁 warehouses/
+│       │   │   │   ├── 📁 transfers/
+│       │   │   │   ├── 📁 adjustments/
+│       │   │   │   ├── 📁 stock-counts/
+│       │   │   │   ├── 📁 reports/
+│       │   │   │   ├── 📁 alerts/
+│       │   │   │   └── 📁 settings/
+│       │   │   │
+│       │   │   ├── 📁 layout/
+│       │   │   │   ├── 📁 header/
+│       │   │   │   ├── 📁 sidebar/
+│       │   │   │   └── 📁 footer/
+│       │   │   │
+│       │   │   ├── app.component.ts
+│       │   │   ├── app.config.ts
+│       │   │   └── app.routes.ts
+│       │   │
+│       │   ├── 📁 assets/
+│       │   ├── 📁 styles/
+│       │   └── index.html
+│       │
+│       ├── angular.json
+│       ├── package.json
+│       └── tsconfig.json
+│
+├── 📁 tests/
+│   ├── 📁 StockFlowPro.API.Tests/
+│   ├── 📁 StockFlowPro.Application.Tests/
+│   ├── 📁 StockFlowPro.Domain.Tests/
+│   ├── 📁 StockFlowPro.Infrastructure.Tests/
+│   └── 📁 StockFlowPro.Web.Tests/
+│
+├── 📁 docs/
+│   ├── API-DOCUMENTATION.md
+│   ├── DATABASE-SCHEMA.md
+│   ├── ARCHITECTURE.md
+│   ├── DEPLOYMENT.md
+│   └── SCREENSHOTS/
+│
+├── StockFlowPro.sln
+├── README.md
+├── docker-compose.yml
+└── .gitignore
+```
+
+---
+
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║                    SECTION 5: IMPLEMENTATION REQUIREMENTS                     ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+## 5.1 Backend Implementation Requirements
+
+### API Design Standards
+```yaml
+RESTful Conventions:
+  - GET /api/products              → List with pagination
+  - GET /api/products/{id}         → Single resource
+  - POST /api/products             → Create
+  - PUT /api/products/{id}         → Full update
+  - PATCH /api/products/{id}       → Partial update
+  - DELETE /api/products/{id}      → Delete (soft)
+  - DELETE /api/products/{id}/hard → Delete (permanent)
+
+Response Format:
+  Success:
+    {
+      "success": true,
+      "data": { ... },
+      "message": "Operation completed successfully",
+      "metadata": {
+        "requestId": "guid",
+        "timestamp": "2024-01-15T10:30:00Z"
+      }
+    }
+  
+  Error:
+    {
+      "success": false,
+      "error": {
+        "code": "VALIDATION_ERROR",
+        "message": "One or more validation errors occurred",
+        "details": {
+          "name": ["Name is required"],
+          "sku": ["SKU must be unique"]
+        }
+      },
+      "metadata": { ... }
+    }
+  
+  Paginated:
+    {
+      "success": true,
+      "data": {
+        "items": [...],
+        "totalCount": 1000,
+        "pageNumber": 1,
+        "pageSize": 20,
+        "totalPages": 50,
+        "hasNextPage": true,
+        "hasPreviousPage": false
+      }
+    }
+
+Query Parameters:
+  - ?page=1&pageSize=20
+  - ?sortBy=name&sortOrder=asc
+  - ?search=laptop
+  - ?filter[categoryId]=5&filter[status]=Active
+  - ?include=category,brand
+```
+
+### Error Handling
+```csharp
+// Global exception handling middleware
+public class ExceptionHandlingMiddleware
+{
+    public async Task InvokeAsync(HttpContext context)
+    {
+        try
+        {
+            await _next(context);
+        }
+        catch (NotFoundException ex)
+        {
+            await HandleExceptionAsync(context, 404, "NOT_FOUND", ex.Message);
+        }
+        catch (ValidationException ex)
+        {
+            await HandleExceptionAsync(context, 400, "VALIDATION_ERROR", ex.Message, ex.Errors);
+        }
+        catch (BusinessRuleException ex)
+        {
+            await HandleExceptionAsync(context, 422, "BUSINESS_RULE_VIOLATION", ex.Message);
+        }
+        catch (ConcurrencyException ex)
+        {
+            await HandleExceptionAsync(context, 409, "CONCURRENCY_CONFLICT", ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            await HandleExceptionAsync(context, 403, "FORBIDDEN", ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unhandled exception");
+            await HandleExceptionAsync(context, 500, "INTERNAL_ERROR", "An unexpected error occurred");
+        }
+    }
+}
+```
+
+### Validation Examples
+```csharp
+public class CreateProductValidator : AbstractValidator<CreateProductDto>
+{
+    private readonly IProductRepository _productRepo;
+    
+    public CreateProductValidator(IProductRepository productRepo)
+    {
+        _productRepo = productRepo;
+        
+        RuleFor(x => x.SKU)
+            .NotEmpty().WithMessage("SKU is required")
+            .MaximumLength(50).WithMessage("SKU cannot exceed 50 characters")
+            .Matches(@"^[A-Z0-9\-]+$").WithMessage("SKU can only contain uppercase letters, numbers, and hyphens")
+            .MustAsync(BeUniqueSku).WithMessage("SKU already exists");
+        
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Product name is required")
+            .MaximumLength(200).WithMessage("Name cannot exceed 200 characters");
+        
+        RuleFor(x => x.CategoryId)
+            .GreaterThan(0).WithMessage("Category is required");
+        
+        RuleFor(x => x.ReorderPoint)
+            .GreaterThanOrEqualTo(0).WithMessage("Reorder point cannot be negative")
+            .LessThan(x => x.MaxStockLevel)
+            .When(x => x.MaxStockLevel > 0)
+            .WithMessage("Reorder point must be less than max stock level");
+        
+        RuleFor(x => x.MinStockLevel)
+            .LessThanOrEqualTo(x => x.ReorderPoint)
+            .WithMessage("Min stock level must be less than or equal to reorder point");
+    }
+    
+    private async Task<bool> BeUniqueSku(string sku, CancellationToken token)
+    {
+        return !await _productRepo.ExistsBySkuAsync(sku, token);
+    }
+}
+```
+
+### Domain Service Examples
+```csharp
+/// <summary>
+/// Handles all stock movement operations with proper validation and auditing
+/// </summary>
+public class StockMovementEngine
+{
+    public async Task<StockMovement> CreateMovementAsync(
+        MovementType type,
+        int productId,
+        int? fromWarehouseId,
+        int? toWarehouseId,
+        decimal quantity,
+        decimal unitCost,
+        string referenceType,
+        int? referenceId,
+        string notes)
+    {
+        // 1. Validate the operation
+        await ValidateMovementAsync(type, productId, fromWarehouseId, quantity);
+        
+        // 2. Get current stock level (with lock for concurrency)
+        var stockLevel = await _stockLevelRepo.GetWithLockAsync(productId, toWarehouseId ?? fromWarehouseId.Value);
+        
+        // 3. Check for negative stock (if not allowed)
+        if (IsOutboundMovement(type))
+        {
+            var newBalance = stockLevel.QuantityOnHand - quantity;
+            if (newBalance < 0 && !_warehouseSettings.AllowNegativeStock)
+            {
+                throw new BusinessRuleException($"Insufficient stock. Available: {stockLevel.QuantityOnHand}, Requested: {quantity}");
+            }
+        }
+        
+        // 4. Create the movement record
+        var movement = new StockMovement
+        {
+            MovementNumber = await _numberSeriesService.GenerateNextAsync("StockMovement"),
+            MovementType = type,
+            MovementDate = _dateTime.Now,
+            ProductId = productId,
+            FromWarehouseId = fromWarehouseId,
+            ToWarehouseId = toWarehouseId,
+            Quantity = quantity,
+            UnitCost = unitCost,
+            TotalCost = quantity * unitCost,
+            ReferenceType = referenceType,
+            ReferenceId = referenceId,
+            Notes = notes,
+            CreatedByUserId = _currentUser.UserId,
+            Status = MovementStatus.Completed
+        };
+        
+        // 5. Update stock levels
+        await UpdateStockLevelsAsync(movement);
+        
+        // 6. Calculate running balance
+        movement.RunningBalance = await CalculateRunningBalanceAsync(productId, toWarehouseId ?? fromWarehouseId.Value);
+        
+        // 7. Check for alerts
+        await CheckStockAlertsAsync(productId, toWarehouseId ?? fromWarehouseId.Value);
+        
+        // 8. Save and return
+        await _movementRepo.AddAsync(movement);
+        await _unitOfWork.SaveChangesAsync();
+        
+        return movement;
+    }
+    
+    private async Task UpdateStockLevelsAsync(StockMovement movement)
+    {
+        if (IsOutboundMovement(movement.MovementType))
+        {
+            await DecrementStockAsync(movement.ProductId, movement.FromWarehouseId.Value, movement.Quantity);
+        }
+        
+        if (IsInboundMovement(movement.MovementType))
+        {
+            await IncrementStockAsync(movement.ProductId, movement.ToWarehouseId.Value, movement.Quantity, movement.UnitCost);
+        }
+    }
+}
+```
+
+---
+
+## 5.2 Frontend Implementation Requirements
+
+### Angular Component Structure
+```
+features/inventory/
+├── components/
+│   ├── stock-levels/
+│   │   ├── stock-levels-list/
+│   │   │   ├── stock-levels-list.component.ts
+│   │   │   ├── stock-levels-list.component.html
+│   │   │   ├── stock-levels-list.component.scss
+│   │   │   ├── stock-levels-list.component.spec.ts
+│   │   │   └── README.md
+│   │   │
+│   │   ├── stock-level-detail/
+│   │   ├── stock-level-adjust/
+│   │   └── stock-level-history/
+│   │
+│   ├── stock-movements/
+│   └── stock-adjustments/
+│
+├── services/
+│   ├── inventory.service.ts
+│   └── inventory.service.spec.ts
+│
+├── state/
+│   └── inventory.store.ts
+│
+├── models/
+│   ├── stock-level.model.ts
+│   └── stock-movement.model.ts
+│
+├── inventory.routes.ts
+└── inventory.config.ts
+```
+
+### State Management with Signals
+```typescript
+// inventory.store.ts
+@Injectable({ providedIn: 'root' })
+export class InventoryStore {
+  // ─── STATE SIGNALS ──────────────────────────────────────────────────────────
+  private readonly _stockLevels = signal<StockLevel[]>([]);
+  private readonly _loading = signal<boolean>(false);
+  private readonly _error = signal<string | null>(null);
+  private readonly _filters = signal<StockLevelFilters>({});
+  private readonly _pagination = signal<PaginationState>({ page: 1, pageSize: 20, totalCount: 0 });
+  
+  // ─── PUBLIC SELECTORS (readonly) ────────────────────────────────────────────
+  readonly stockLevels = this._stockLevels.asReadonly();
+  readonly loading = this._loading.asReadonly();
+  readonly error = this._error.asReadonly();
+  readonly filters = this._filters.asReadonly();
+  readonly pagination = this._pagination.asReadonly();
+  
+  // ─── COMPUTED SIGNALS ───────────────────────────────────────────────────────
+  readonly lowStockItems = computed(() => 
+    this._stockLevels().filter(s => s.status === 'Low' || s.status === 'Critical')
+  );
+  
+  readonly outOfStockCount = computed(() => 
+    this._stockLevels().filter(s => s.status === 'OutOfStock').length
+  );
+  
+  readonly totalInventoryValue = computed(() => 
+    this._stockLevels().reduce((sum, s) => sum + s.totalValue, 0)
+  );
+  
+  // ─── ACTIONS ────────────────────────────────────────────────────────────────
+  async loadStockLevels(): Promise<void> {
+    this._loading.set(true);
+    this._error.set(null);
+    
+    try {
+      const response = await firstValueFrom(
+        this.inventoryService.getStockLevels(this._filters(), this._pagination())
+      );
+      
+      this._stockLevels.set(response.data.items);
+      this._pagination.update(p => ({ ...p, totalCount: response.data.totalCount }));
+    } catch (err) {
+      this._error.set(err.message);
+    } finally {
+      this._loading.set(false);
+    }
+  }
+  
+  updateFilters(filters: Partial<StockLevelFilters>): void {
+    this._filters.update(f => ({ ...f, ...filters }));
+    this._pagination.update(p => ({ ...p, page: 1 })); // Reset to first page
+    this.loadStockLevels();
+  }
+}
+```
+
+### Syncfusion Grid Integration
+```typescript
+// stock-levels-list.component.ts
+@Component({
+  selector: 'app-stock-levels-list',
+  standalone: true,
+  imports: [
+    GridModule, 
+    PageService, 
+    SortService, 
+    FilterService, 
+    GroupService,
+    ExcelExportService,
+    PdfExportService,
+    ToolbarService,
+    ColumnChooserService
+  ],
+  templateUrl: './stock-levels-list.component.html'
+})
+export class StockLevelsListComponent implements OnInit {
+  private readonly store = inject(InventoryStore);
+  private readonly notificationService = inject(NotificationService);
+  
+  @ViewChild('grid') grid!: GridComponent;
+  
+  // ─── GRID CONFIGURATION ─────────────────────────────────────────────────────
+  readonly pageSettings: PageSettingsModel = {
+    pageSize: 20,
+    pageSizes: [10, 20, 50, 100],
+    enableQueryString: true
+  };
+  
+  readonly filterSettings: FilterSettingsModel = {
+    type: 'Excel',
+    mode: 'Immediate'
+  };
+  
+  readonly selectionSettings: SelectionSettingsModel = {
+    type: 'Multiple',
+    mode: 'Row',
+    checkboxOnly: true
+  };
+  
+  readonly toolbar: ToolbarItems[] = [
+    'Search',
+    'ExcelExport',
+    'PdfExport',
+    'ColumnChooser',
+    { text: 'Adjust Stock', prefixIcon: 'e-adjust', id: 'adjust' },
+    { text: 'Transfer', prefixIcon: 'e-transfer', id: 'transfer' },
+    { text: 'Refresh', prefixIcon: 'e-refresh', id: 'refresh' }
+  ];
+  
+  // ─── REACTIVE DATA ──────────────────────────────────────────────────────────
+  readonly stockLevels = this.store.stockLevels;
+  readonly loading = this.store.loading;
+  readonly warehouses = signal<LookupItem[]>([]);
+  
+  // ─── LIFECYCLE ──────────────────────────────────────────────────────────────
+  ngOnInit(): void {
+    this.store.loadStockLevels();
+    this.loadLookups();
+  }
+  
+  // ─── EVENT HANDLERS ─────────────────────────────────────────────────────────
+  onToolbarClick(args: ClickEventArgs): void {
+    switch (args.item.id) {
+      case 'adjust':
+        this.openAdjustmentDialog();
+        break;
+      case 'transfer':
+        this.openTransferDialog();
+        break;
+      case 'refresh':
+        this.store.loadStockLevels();
+        break;
+      case `${this.grid.element.id}_excelexport`:
+        this.exportToExcel();
+        break;
+    }
+  }
+  
+  onRowDataBound(args: RowDataBoundEventArgs): void {
+    const data = args.data as StockLevel;
+    
+    // Apply conditional row styling
+    if (data.status === 'OutOfStock') {
+      args.row?.classList.add('out-of-stock-row');
+    } else if (data.status === 'Critical') {
+      args.row?.classList.add('critical-stock-row');
+    } else if (data.status === 'Low') {
+      args.row?.classList.add('low-stock-row');
+    }
+  }
+  
+  onQueryCellInfo(args: QueryCellInfoEventArgs): void {
+    const data = args.data as StockLevel;
+    
+    if (args.column?.field === 'quantityOnHand') {
+      // Color-code quantity cells
+      if (data.quantityOnHand === 0) {
+        args.cell?.classList.add('text-danger', 'fw-bold');
+      } else if (data.quantityOnHand < data.reorderPoint) {
+        args.cell?.classList.add('text-warning', 'fw-bold');
+      }
+    }
+  }
+  
+  // ─── EXPORT ─────────────────────────────────────────────────────────────────
+  private exportToExcel(): void {
+    const exportProperties: ExcelExportProperties = {
+      fileName: `StockLevels_${new Date().toISOString().split('T')[0]}.xlsx`,
+      header: {
+        headerRows: 2,
+        rows: [
+          { cells: [{ colSpan: 8, value: 'Stock Levels Report', style: { bold: true, fontSize: 14 } }] },
+          { cells: [{ colSpan: 8, value: `Generated: ${new Date().toLocaleString()}` }] }
+        ]
+      }
+    };
+    
+    this.grid.excelExport(exportProperties);
+  }
+}
+```
+
+---
+
+## 5.3 Testing Requirements
+
+### Backend Unit Tests
+```csharp
+public class ProductServiceTests
+{
+    private readonly Mock<IProductRepository> _productRepoMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IMapper> _mapperMock;
+    private readonly ProductService _sut;
+    
+    public ProductServiceTests()
+    {
+        _productRepoMock = new Mock<IProductRepository>();
+        _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _mapperMock = new Mock<IMapper>();
+        _sut = new ProductService(_productRepoMock.Object, _unitOfWorkMock.Object, _mapperMock.Object);
+    }
+    
+    [Fact]
+    public async Task CreateProduct_WithValidData_ShouldCreateAndReturnProduct()
+    {
+        // Arrange
+        var createDto = new CreateProductDto
+        {
+            SKU = "TEST-001",
+            Name = "Test Product",
+            CategoryId = 1,
+            StandardCost = 10.00m
+        };
+        
+        _productRepoMock.Setup(r => r.ExistsBySkuAsync(createDto.SKU, default))
+            .ReturnsAsync(false);
+        
+        _mapperMock.Setup(m => m.Map<Product>(createDto))
+            .Returns(new Product { SKU = createDto.SKU, Name = createDto.Name });
+        
+        // Act
+        var result = await _sut.CreateProductAsync(createDto);
+        
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(createDto.SKU, result.SKU);
+        _productRepoMock.Verify(r => r.AddAsync(It.IsAny<Product>()), Times.Once);
+        _unitOfWorkMock.Verify(u => u.SaveChangesAsync(default), Times.Once);
+    }
+    
+    [Fact]
+    public async Task CreateProduct_WithDuplicateSku_ShouldThrowValidationException()
+    {
+        // Arrange
+        var createDto = new CreateProductDto { SKU = "EXISTING-SKU" };
+        
+        _productRepoMock.Setup(r => r.ExistsBySkuAsync(createDto.SKU, default))
+            .ReturnsAsync(true);
+        
+        // Act & Assert
+        await Assert.ThrowsAsync<ValidationException>(
+            () => _sut.CreateProductAsync(createDto)
+        );
+    }
+    
+    [Fact]
+    public async Task GetStockLevels_WithWarehouseFilter_ShouldReturnFilteredResults()
+    {
+        // Arrange
+        var warehouseId = 1;
+        var expectedStockLevels = new List<StockLevel>
+        {
+            new() { ProductId = 1, WarehouseId = 1, QuantityOnHand = 100 },
+            new() { ProductId = 2, WarehouseId = 1, QuantityOnHand = 50 }
+        };
+        
+        _inventoryRepoMock.Setup(r => r.GetStockLevelsAsync(
+            It.Is<StockLevelFilter>(f => f.WarehouseId == warehouseId),
+            It.IsAny<PaginationParams>(),
+            default))
+            .ReturnsAsync(new PaginatedList<StockLevel>(expectedStockLevels, 2, 1, 20));
+        
+        // Act
+        var result = await _sut.GetStockLevelsAsync(new StockLevelFilter { WarehouseId = warehouseId });
+        
+        // Assert
+        Assert.Equal(2, result.TotalCount);
+        Assert.All(result.Items, item => Assert.Equal(warehouseId, item.WarehouseId));
+    }
+}
+```
+
+### Frontend Component Tests
+```typescript
+describe('StockLevelsListComponent', () => {
+  let component: StockLevelsListComponent;
+  let fixture: ComponentFixture<StockLevelsListComponent>;
+  let mockInventoryStore: jasmine.SpyObj<InventoryStore>;
+  
+  beforeEach(async () => {
+    mockInventoryStore = jasmine.createSpyObj('InventoryStore', ['loadStockLevels', 'updateFilters']);
+    mockInventoryStore.stockLevels = signal([]);
+    mockInventoryStore.loading = signal(false);
+    
+    await TestBed.configureTestingModule({
+      imports: [StockLevelsListComponent],
+      providers: [
+        { provide: InventoryStore, useValue: mockInventoryStore }
+      ]
+    }).compileComponents();
+    
+    fixture = TestBed.createComponent(StockLevelsListComponent);
+    component = fixture.componentInstance;
+  });
+  
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+  
+  it('should load stock levels on init', () => {
+    fixture.detectChanges();
+    expect(mockInventoryStore.loadStockLevels).toHaveBeenCalled();
+  });
+  
+  it('should apply critical row styling for critical stock', () => {
+    const mockData: StockLevel = {
+      productId: 1,
+      productName: 'Test Product',
+      quantityOnHand: 5,
+      reorderPoint: 20,
+      status: 'Critical'
+    };
+    
+    const mockArgs = {
+      data: mockData,
+      row: document.createElement('tr')
+    } as RowDataBoundEventArgs;
+    
+    component.onRowDataBound(mockArgs);
+    
+    expect(mockArgs.row?.classList.contains('critical-stock-row')).toBeTrue();
+  });
+  
+  it('should export to Excel with correct filename', () => {
+    const gridSpy = jasmine.createSpyObj('GridComponent', ['excelExport']);
+    component.grid = gridSpy;
+    
+    component['exportToExcel']();
+    
+    expect(gridSpy.excelExport).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        fileName: jasmine.stringMatching(/^StockLevels_\d{4}-\d{2}-\d{2}\.xlsx$/)
+      })
+    );
+  });
+});
+```
+
+---
+
+## 5.4 Documentation Requirements
+
+### README.md for Each Component
+Each component should have a comprehensive README following this template:
+
+```markdown
+# Stock Levels List Component
+
+## 🎯 Purpose
+Displays inventory stock levels across all warehouses with full CRUD capabilities,
+real-time filtering, and export functionality using Syncfusion DataGrid.
+
+## 📋 Features
+- [x] Paginated grid with server-side sorting and filtering
+- [x] Excel-like column filters
+- [x] Multi-row selection with checkbox
+- [x] Export to Excel, PDF, CSV
+- [x] Column chooser for customization
+- [x] Conditional row styling based on stock status
+- [x] Quick actions toolbar
+- [x] Real-time stock status indicators
+
+## 🏗️ Component Structure
+[diagram]
+
+## 🔧 Syncfusion Modules Used
+| Module | Purpose |
+|--------|---------|
+| GridModule | Core grid functionality |
+| PageService | Pagination |
+| FilterService | Column filtering |
+| ExcelExportService | Excel export |
+| ... | ... |
+
+## 📝 Usage Example
+```typescript
+// Example usage code
+```
+
+## ⚠️ Error Handling
+| Error | Cause | Solution |
+|-------|-------|----------|
+| Data load failure | API unavailable | Shows error message, retry button |
+| Export failure | Large dataset | Shows progress, chunked export |
+
+## 🧪 Test Coverage
+- Unit tests: 95%
+- Integration tests: 80%
+- E2E tests: Key flows covered
+
+## 📊 Performance Considerations
+- Virtual scrolling for 10k+ rows
+- Debounced search (300ms)
+- Lazy loading of dropdown data
+
+## 🔗 Related Components
+- `StockLevelDetailComponent` - Detail view
+- `StockAdjustmentDialog` - Quick adjustment
+- `TransferCreateComponent` - Create transfer
+
+## 📚 Syncfusion Documentation
+- [Grid Overview](https://ej2.syncfusion.com/angular/documentation/grid/getting-started)
+- [Excel Export](https://ej2.syncfusion.com/angular/documentation/grid/excel-export)
+```
+
+---
+
+## 5.5 Quality Checklist
+
+Before considering any feature complete:
+
+```yaml
+Code Quality:
+  [ ] TypeScript strict mode (no `any` types)
+  [ ] ESLint passing with no warnings
+  [ ] Prettier formatted
+  [ ] No console.log statements
+  [ ] Proper error handling
+  [ ] Loading states implemented
+  [ ] Empty states implemented
+  [ ] Proper comments for complex logic
+
+Testing:
+  [ ] Unit tests written
+  [ ] Integration tests for key flows
+  [ ] Tests passing
+  [ ] Edge cases covered
+
+Documentation:
+  [ ] README.md complete
+  [ ] Inline comments for complex code
+  [ ] API documented in Swagger
+  [ ] Changelog updated
+
+Accessibility:
+  [ ] Keyboard navigation works
+  [ ] ARIA labels present
+  [ ] Color contrast sufficient
+  [ ] Screen reader friendly
+
+Performance:
+  [ ] No unnecessary re-renders
+  [ ] Lazy loading where appropriate
+  [ ] Pagination implemented
+  [ ] API calls optimized
+
+Security:
+  [ ] Input validation
+  [ ] Authorization checks
+  [ ] No sensitive data in logs
+  [ ] CSRF protection (if applicable)
+```
+
+---
+
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║                    SECTION 6: DELIVERABLES                                    ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+## 6.1 Required Deliverables
+
+Generate the complete application with:
+
+1. **Backend (ASP.NET Core 8)**
+   - Complete solution with all projects
+   - All entities with EF Core configurations
+   - Repository pattern implementation
+   - Service layer with business logic
+   - API controllers with full CRUD
+   - FluentValidation validators
+   - AutoMapper profiles
+   - JWT authentication setup
+   - Swagger documentation
+   - Seed data (all 1000 products, etc.)
+   - Unit tests for services
+
+2. **Frontend (Angular 19)**
+   - Complete Angular project
+   - All feature modules
+   - Syncfusion grid implementations
+   - State management with signals
+   - Services with HTTP calls
+   - Shared components
+   - Custom pipes
+   - Responsive layouts
+   - Theme setup
+   - Unit tests for components
+
+3. **Database**
+   - EF Core migrations
+   - Seed data SQL scripts
+   - Database diagram
+
+4. **Documentation**
+   - README.md with setup instructions
+   - API documentation
+   - Architecture documentation
+   - Screenshots folder
+
+## 6.2 Output Format
+
+Present each file with clear headers:
+```
+// ═══════════════════════════════════════════════════════════════════════════════
+// FILE: src/StockFlowPro.Domain/Entities/Product.cs
+// PURPOSE: Product entity representing inventory items
+// ═══════════════════════════════════════════════════════════════════════════════
+```
+
+Generate in this order:
+1. Solution structure
+2. Domain entities
+3. Infrastructure (DbContext, configurations, repositories)
+4. Application layer (DTOs, services, validators)
+5. API layer (controllers, middleware)
+6. Seed data
+7. Angular core setup
+8. Angular features (one module at a time)
+9. Documentation
+10. Tests
+
+---
+
+Now, create this complete StockFlow Pro Inventory Management System.
+```
+
+---
+
+## How to Use This Prompt
+
+This is an **extremely comprehensive prompt**. You have several options:
+
+### Option A: Generate Everything at Once
+Simply paste this entire prompt and let Claude generate the complete application. This will be a very long output.
+
+### Option B: Generate in Phases
+1. First prompt: "Generate Section 1-3 (Overview, Features, Data Model)"
+2. Second prompt: "Generate Section 4-5 (Project Structure, Implementation)"
+3. Third prompt: "Generate the Backend code"
+4. Fourth prompt: "Generate the Frontend code"
+5. Fifth prompt: "Generate Tests and Documentation"
+
+### Option C: Start with Core + Expand
+1. First: "Generate the Domain entities and DbContext with seed data"
+2. Then: "Generate the Product and Inventory modules (backend + frontend)"
+3. Then: "Generate the Purchase Order module"
+4. Continue feature by feature...
+
+---
+
+**Complete these phases. on each phase must document your progress as sprints. a mentoring document for junior developer.** 
+
+I can begin with:
+1. **Backend (Domain → Infrastructure → Application → API)
+2. **Frontend  (Core → Features → Components)
+3. **Database  (Schema → Seed Data → Migrations)
+
+
+REMEMBER WE DO NOT WANT SYNCFUTION OR THIRD PARTIES. OUR APPLICATION SHOULD RUN IN MEMORY WITH ALL CUSTOMER COMPONENTS.
